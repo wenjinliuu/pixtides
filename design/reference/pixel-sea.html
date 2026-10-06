@@ -1,0 +1,345 @@
+<title>像素海头像工坊</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DotGothic16&family=Silkscreen&display=swap">
+<style>
+/* 布局：一张大画布为主角，控件面板在旁（手机上在下方）；整页是深海夜色，单一暗色外观 */
+:root{
+  --bg:#020838;
+  --panel:#061467;
+  --panel-2:#0a1d86;
+  --line:rgba(120,200,255,.18);
+  --fg:#e3faff;
+  --muted:#8dbde8;
+  --accent:#5ad6fd;
+  --accent-ink:#021046;
+  --font-display:"DotGothic16","Silkscreen","PingFang SC","Hiragino Sans GB","Microsoft YaHei",monospace;
+  --font-pixel:"Silkscreen","DotGothic16",ui-monospace,monospace;
+  --font-body:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Noto Sans SC","Microsoft YaHei",sans-serif;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{background:var(--bg);color:var(--fg);font-family:var(--font-body);font-size:14px;line-height:1.55}
+.wrap{max-width:1120px;margin:0 auto;padding-inline:16px;padding-block:20px 40px;display:grid;gap:20px}
+header{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 16px}
+h1{font-family:var(--font-display);font-weight:400;font-size:clamp(28px,6vw,40px);letter-spacing:.06em;margin:0;line-height:1.1;text-wrap:balance}
+h1 span{color:var(--accent)}
+.sub{color:var(--muted);margin:0;max-width:60ch}
+.main{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:20px;align-items:start}
+@media (max-width:820px){.main{grid-template-columns:minmax(0,1fr)}}
+.stage{display:grid;gap:12px;min-width:0}
+.canvas-box{position:relative;width:100%;max-width:100%;aspect-ratio:1/1;border-radius:6px;overflow:hidden;box-shadow:0 0 0 1px var(--line),0 18px 50px rgba(0,0,0,.45)}
+#view{width:100%;height:100%;display:block;image-rendering:pixelated}
+.meta{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+#avatar{width:56px;height:56px;border-radius:50%;box-shadow:0 0 0 2px var(--panel-2);image-rendering:pixelated}
+.meta-text{display:grid;gap:2px;min-width:0;flex:1}
+.meta-text b{font-family:var(--font-display);font-weight:400;font-size:18px;letter-spacing:.04em}
+.meta-text small{color:var(--muted);font-family:var(--font-pixel);font-size:11px;letter-spacing:.06em;font-variant-numeric:tabular-nums}
+.btn{appearance:none;border:0;cursor:pointer;font:inherit;border-radius:4px;padding:10px 14px;background:var(--panel-2);color:var(--fg);display:inline-flex;align-items:center;justify-content:center;gap:8px;transition:transform .08s,background .15s}
+.btn:hover{background:#1030a8}
+.btn:active{transform:translateY(1px)}
+.btn:focus-visible,.seg button:focus-visible,.theme:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.btn.primary{background:var(--accent);color:var(--accent-ink);font-weight:600}
+.btn.primary:hover{background:#86e6ff}
+.dice{font-family:var(--font-display);font-size:15px}
+.panel{background:var(--panel);border-radius:8px;padding:16px;display:grid;gap:18px;min-width:0}
+.group{display:grid;gap:8px}
+.label{display:flex;justify-content:space-between;align-items:baseline;font-size:12px;color:var(--muted);letter-spacing:.08em}
+.label output{font-family:var(--font-pixel);font-size:11px;color:var(--fg);font-variant-numeric:tabular-nums}
+.themes{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.theme{appearance:none;border:0;padding:0;background:none;cursor:pointer;color:var(--fg);display:grid;gap:4px;text-align:left;font:inherit}
+.theme canvas{width:100%;aspect-ratio:1/1;max-width:100%;display:block;border-radius:4px;image-rendering:pixelated;box-shadow:0 0 0 1px var(--line);transition:box-shadow .15s}
+.theme span{font-size:12px;color:var(--muted)}
+.theme[aria-pressed="true"] canvas{box-shadow:0 0 0 2px var(--accent)}
+.theme[aria-pressed="true"] span{color:var(--fg)}
+.seg{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;background:var(--bg);border-radius:4px;padding:3px;gap:3px}
+.seg button{appearance:none;border:0;background:none;color:var(--muted);font-family:var(--font-pixel);font-size:11px;padding:7px 0;border-radius:3px;cursor:pointer;letter-spacing:.04em}
+.seg button[aria-pressed="true"]{background:var(--panel-2);color:var(--fg)}
+input[type=range]{width:100%;accent-color:var(--accent);margin:0}
+.toggle{display:flex;align-items:center;justify-content:space-between;font-size:13px;cursor:pointer}
+.toggle input{width:18px;height:18px;accent-color:var(--accent)}
+.export{display:grid;gap:8px;border-top:1px solid var(--line);padding-top:16px}
+.export-row{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.hint{font-size:12px;color:var(--muted);margin:0}
+#toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--fg);color:var(--accent-ink);padding:8px 16px;border-radius:4px;font-size:13px;opacity:0;pointer-events:none;transition:opacity .2s}
+#toast.show{opacity:1}
+#sheet{position:fixed;inset:0;background:rgba(1,4,30,.88);display:grid;place-items:center;padding:16px;z-index:9}
+#sheet .card{display:grid;gap:12px;max-width:min(92vw,520px);width:100%;justify-items:center;text-align:center}
+#sheet img{width:100%;max-width:100%;border-radius:6px;image-rendering:pixelated}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+<div class="wrap">
+  <header>
+    <h1>像素<span>海</span></h1>
+    <p class="sub">蓝色调像素头像生成器。选一个场景，掷骰子换一张，导出最高 4096 × 4096 的 PNG 或无损 SVG。</p>
+  </header>
+
+  <div class="main">
+    <section class="stage">
+      <div class="canvas-box"><canvas id="view" width="1024" height="1024" aria-label="当前生成的像素图"></canvas></div>
+      <div class="meta">
+        <canvas id="avatar" width="112" height="112" aria-label="圆形头像预览"></canvas>
+        <div class="meta-text"><b id="name">浅滩</b><small id="seedText">SEED 000000</small></div>
+        <button class="btn primary dice" id="reroll" type="button">换一张 ⚄</button>
+      </div>
+    </section>
+
+    <aside class="panel">
+      <div class="group">
+        <div class="label">场景</div>
+        <div class="themes" id="themes"></div>
+      </div>
+
+      <div class="group">
+        <div class="label">像素粒度 <output id="gridOut">32 格</output></div>
+        <div class="seg" id="gridSeg">
+          <button type="button" data-v="20">粗</button>
+          <button type="button" data-v="32">中</button>
+          <button type="button" data-v="48">细</button>
+          <button type="button" data-v="72">极细</button>
+        </div>
+      </div>
+
+      <div class="group">
+        <label class="label" for="angle">渐变方向 <output id="angleOut">90°</output></label>
+        <input type="range" id="angle" min="0" max="359" step="1" value="90">
+      </div>
+
+      <div class="group">
+        <label class="label" for="amp">浪线起伏 <output id="ampOut">1.0</output></label>
+        <input type="range" id="amp" min="0" max="2" step="0.1" value="1">
+      </div>
+
+      <div class="group">
+        <label class="label" for="dots">散落方块 <output id="dotsOut">1.0</output></label>
+        <input type="range" id="dots" min="0" max="2.5" step="0.1" value="1">
+      </div>
+
+      <label class="toggle" for="invert">深浅反转 <input type="checkbox" id="invert"></label>
+
+      <div class="export">
+        <div class="label">导出尺寸 <output id="sizeOut">2048 px</output></div>
+        <div class="seg" id="sizeSeg">
+          <button type="button" data-v="1024">1024</button>
+          <button type="button" data-v="2048">2048</button>
+          <button type="button" data-v="4096">4096</button>
+        </div>
+        <div class="export-row">
+          <button class="btn primary" id="savePng" type="button">下载 PNG</button>
+          <button class="btn" id="saveSvg" type="button">下载 SVG</button>
+        </div>
+        <p class="hint">SVG 是矢量格式，放大到任意尺寸都锐利。</p>
+      </div>
+    </aside>
+  </div>
+</div>
+
+<div id="toast" role="status"></div>
+<div id="sheet" hidden>
+  <div class="card">
+    <img id="sheetImg" alt="导出的图片">
+    <p class="hint">长按或右键图片即可保存。</p>
+    <button class="btn" id="sheetClose" type="button">关闭</button>
+  </div>
+</div>
+
+<script>
+(function(){
+// ---------- 场景：palette 按渐变方向从起点到终点排列 ----------
+const THEMES=[
+  {id:'shoal',name:'浅滩',angle:94,amp:1,dots:1,run:[2,6],patch:1.2,
+   pal:['#0009F1','#064EFE','#1696FD','#58DAFD','#97F8FC','#A9FBFD']},
+  {id:'swell',name:'斜浪',angle:124,amp:.8,dots:1.1,run:[1,3],patch:.8,
+   pal:['#000FE8','#0559FE','#118DFE','#59D3FD','#83EDFD','#A5F9FD']},
+  {id:'tide',name:'潮汐',angle:108,amp:1.3,dots:1.2,run:[1,4],patch:1,
+   pal:['#0113EE','#0E53FE','#1E8CFD','#4DC6FD','#8BEEFD','#A3F8FD']},
+  {id:'abyss',name:'深海',angle:90,amp:1,dots:.9,run:[2,5],patch:.8,glowRatio:.75,
+   pal:['#3EC0FD','#148FFD','#0752FE','#000DEB','#0008A8','#03066B','#020338'],glow:['#5AD6FD','#A4F9FD','#D8FEFF']},
+  {id:'night',name:'星夜',angle:90,amp:.7,dots:1.3,run:[3,7],patch:.6,glowRatio:.85,
+   pal:['#020442','#02087A','#000DEB','#0752FE','#148FFD','#58DAFD'],glow:['#A4F9FD','#FFFFFF','#88EFFD']},
+  {id:'glacier',name:'冰川',angle:58,amp:1.2,dots:.8,run:[1,3],patch:1,
+   pal:['#F2FEFF','#D2FAFE','#A4F9FD','#6FE2FD','#3EC0FD','#148FFD','#0752FE']},
+  {id:'sky',name:'晴空',angle:92,amp:.9,dots:.6,run:[3,8],patch:2,
+   pal:['#0A63FE','#148FFD','#3EC0FD','#7AE6FD','#B4FAFD','#E6FEFF']},
+  {id:'ripple',name:'涟漪',radial:true,angle:0,amp:.8,dots:1,run:[1,3],patch:.8,
+   pal:['#C2FCFE','#88EFFD','#5AD6FD','#148FFD','#0752FE','#000DEB','#02087A']},
+  {id:'cascade',name:'瀑布',angle:0,amp:1.4,dots:1,run:[3,9],patch:1,
+   pal:['#000DEB','#0752FE','#148FFD','#3EC0FD','#88EFFD','#C8FDFF']}
+];
+
+// ---------- 随机数 ----------
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+function hashStr(s){let h=2166136261;for(const ch of s){h^=ch.charCodeAt(0);h=Math.imul(h,16777619)}return h>>>0}
+
+// ---------- 生成模型 ----------
+// 半格网格 H = 2G：浪带以整格为台阶，散落方块可以落在半格上，于是大小不一
+function generate(theme,o){
+  const G=o.grid,H=G*2,rnd=mulberry32((o.seed^hashStr(theme.id))>>>0);
+  const ri=(a,b)=>a+Math.floor(rnd()*(b-a+1));
+  let pal=theme.pal.slice(); if(o.invert) pal.reverse();
+  const L=pal.length, glow=theme.glow||[], full=pal.concat(glow);
+  const cells=new Uint8Array(H*H);
+  const th=o.angle*Math.PI/180, c=Math.cos(th), s=Math.sin(th);
+  const amp=o.amp, step=1/G;
+
+  function walk(n,maxA,closed){
+    const a=new Float32Array(n);let w=(rnd()*2-1)*maxA*.5,i=0;
+    while(i<n){const r=ri(theme.run[0],theme.run[1]);for(let j=0;j<r&&i<n;j++)a[i++]=w;
+      let jump=(rnd()<.5?-1:1)*ri(1,3)*step*(rnd()<.2?.5:1);
+      if(Math.abs(w+jump)>maxA) jump=-jump; w+=jump;}
+    if(closed){const d=a[n-1]-a[0];for(let k=0;k<n;k++)a[k]=Math.round((a[k]-d*k/n)/(step/2))*(step/2);}
+    return a;
+  }
+
+  let cx=0,cy=0;
+  if(theme.radial){cx=(rnd()-.5)*.3;cy=(rnd()-.5)*.3;}
+  const ext=theme.radial?0.72:0.5*(Math.abs(c)+Math.abs(s));
+  const gap=(theme.radial?ext:2*ext)/L;
+  const ncol=theme.radial?Math.round(G*2.4):Math.ceil(2*ext*G)+3;
+  const bounds=[];
+  for(let k=0;k<L-1;k++){
+    const base=(theme.radial?0:-ext)+(k+1)*gap+(rnd()-.5)*gap*.3;
+    const w=walk(ncol,gap*.95*amp+1e-6,theme.radial);
+    bounds.push({base,w});
+  }
+  for(let y=0;y<H;y++)for(let x=0;x<H;x++){
+    const px=(x+.5)/H-.5-cx, py=(y+.5)/H-.5-cy;
+    let u,v;
+    if(theme.radial){v=Math.hypot(px,py);u=Math.floor((Math.atan2(py,px)+Math.PI)/(2*Math.PI)*ncol)%ncol;}
+    else{v=px*c+py*s;u=Math.min(ncol-1,Math.max(0,Math.floor((-px*s+py*c+ext)*G)));}
+    let layer=0;for(const b of bounds) if(v>b.base+b.w[u]) layer++;
+    cells[y*H+x]=layer;
+  }
+  // 嵌入的色块补丁：让浪带之间有错落的"岛"
+  const patches=Math.round(theme.patch*G/7);
+  for(let p=0;p<patches;p++){
+    const w=ri(2,6)*2,h=ri(1,2)*2,x0=ri(0,G-1)*2,y0=ri(0,G-1)*2;
+    const base=cells[Math.min(H-1,y0)*H+Math.min(H-1,x0)];
+    const col=Math.max(0,Math.min(L-1,base+(rnd()<.5?-1:1)));
+    for(let y=y0;y<Math.min(H,y0+h);y++)for(let x=x0;x<Math.min(H,x0+w);x++)cells[y*H+x]=col;
+  }
+  // 散落方块
+  const n=Math.round(o.dots*G*G/20);
+  function dotColor(base){
+    if(glow.length&&rnd()<(theme.glowRatio||0)) return L+ri(0,glow.length-1);
+    let dir=base<=1?1:base>=L-2?-1:(rnd()<.5?-1:1);
+    let mag=rnd()<.6?1:rnd()<.8?2:3;
+    return Math.max(0,Math.min(L-1,base+dir*mag));
+  }
+  function block(x0,y0,w,h,col){for(let y=y0;y<Math.min(H,y0+h);y++)for(let x=x0;x<Math.min(H,x0+w);x++)if(x>=0&&y>=0)cells[y*H+x]=col;}
+  for(let i=0;i<n;i++){
+    const r=rnd(), sz=r<.55?2:r<.82?3:r<.95?4:5;
+    const w=sz+(rnd()<.12?1:0), h=sz;
+    const x0=ri(-1,H-2), y0=ri(-1,H-2);
+    const base=cells[Math.max(0,y0)*H+Math.max(0,x0)];
+    const col=dotColor(base>=L?L-1:base);
+    block(x0,y0,w,h,col);
+    if(rnd()<.22){ // 对角相连的一对
+      const dx=rnd()<.5?w:-w, dy=rnd()<.5?h:-h;
+      block(x0+dx,y0+dy,w,h,rnd()<.6?col:dotColor(base>=L?L-1:base));
+    }
+  }
+  return {H,cells,pal:full};
+}
+
+// ---------- 绘制 ----------
+function paint(ctx,m,S){
+  const {H,cells,pal}=m, f=S/H;
+  ctx.imageSmoothingEnabled=false;
+  for(let y=0;y<H;y++){
+    const y0=Math.round(y*f), y1=Math.round((y+1)*f);
+    let x=0;
+    while(x<H){const c=cells[y*H+x];let e=x+1;while(e<H&&cells[y*H+e]===c)e++;
+      ctx.fillStyle=pal[c];const x0=Math.round(x*f),x1=Math.round(e*f);
+      ctx.fillRect(x0,y0,x1-x0,y1-y0);x=e;}
+  }
+}
+function toSVG(m){
+  const {H,cells,pal}=m;let out=[];
+  out.push(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${H} ${H}" width="2048" height="2048" shape-rendering="crispEdges">`);
+  for(let y=0;y<H;y++){let x=0;while(x<H){const c=cells[y*H+x];let e=x+1;while(e<H&&cells[y*H+e]===c)e++;
+    out.push(`<rect x="${x}" y="${y}" width="${e-x}" height="1.02" fill="${pal[c]}"/>`);x=e;}}
+  out.push('</svg>');return out.join('');
+}
+
+// ---------- 状态与界面 ----------
+const $=id=>document.getElementById(id);
+const state={theme:THEMES[0],grid:32,angle:94,amp:1,dots:1,invert:false,seed:Math.floor(Math.random()*999999),size:2048};
+let model=null;
+const view=$('view'),vctx=view.getContext('2d'),av=$('avatar'),actx=av.getContext('2d');
+
+function opts(){return{grid:state.grid,angle:state.angle,amp:state.amp,dots:state.dots,invert:state.invert,seed:state.seed}}
+function render(){
+  model=generate(state.theme,opts());
+  paint(vctx,model,1024);
+  actx.clearRect(0,0,112,112);actx.imageSmoothingEnabled=false;actx.drawImage(view,0,0,112,112);
+  $('name').textContent=state.theme.name;
+  $('seedText').textContent='SEED '+String(state.seed).padStart(6,'0')+' · '+state.grid+'×'+state.grid;
+}
+
+const themesEl=$('themes');
+const thumbs=[];
+THEMES.forEach(t=>{
+  const b=document.createElement('button');b.type='button';b.className='theme';b.setAttribute('aria-pressed',t===state.theme);
+  const cv=document.createElement('canvas');cv.width=cv.height=192;
+  const sp=document.createElement('span');sp.textContent=t.name;
+  b.append(cv,sp);themesEl.append(b);thumbs.push({t,b,cv});
+  b.addEventListener('click',()=>{selectTheme(t)});
+});
+function drawThumbs(){thumbs.forEach(({t,cv})=>{const m=generate(t,{grid:24,angle:t.angle,amp:t.amp,dots:t.dots,invert:false,seed:state.seed});paint(cv.getContext('2d'),m,192)})}
+function selectTheme(t){
+  state.theme=t;state.angle=t.angle;state.amp=t.amp;state.dots=t.dots;state.invert=false;
+  thumbs.forEach(x=>x.b.setAttribute('aria-pressed',x.t===t));
+  syncControls();render();
+}
+function syncControls(){
+  $('angle').value=state.angle;$('angleOut').textContent=state.angle+'°';
+  $('angle').disabled=!!state.theme.radial;
+  if(state.theme.radial)$('angleOut').textContent='径向';
+  $('amp').value=state.amp;$('ampOut').textContent=(+state.amp).toFixed(1);
+  $('dots').value=state.dots;$('dotsOut').textContent=(+state.dots).toFixed(1);
+  $('invert').checked=state.invert;
+  $('gridOut').textContent=state.grid+' 格';
+  $('sizeOut').textContent=state.size+' px';
+  document.querySelectorAll('#gridSeg button').forEach(b=>b.setAttribute('aria-pressed',+b.dataset.v===state.grid));
+  document.querySelectorAll('#sizeSeg button').forEach(b=>b.setAttribute('aria-pressed',+b.dataset.v===state.size));
+}
+$('angle').addEventListener('input',e=>{state.angle=+e.target.value;$('angleOut').textContent=state.angle+'°';render()});
+$('amp').addEventListener('input',e=>{state.amp=+e.target.value;$('ampOut').textContent=state.amp.toFixed(1);render()});
+$('dots').addEventListener('input',e=>{state.dots=+e.target.value;$('dotsOut').textContent=state.dots.toFixed(1);render()});
+$('invert').addEventListener('change',e=>{state.invert=e.target.checked;render()});
+$('gridSeg').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;state.grid=+b.dataset.v;syncControls();render()});
+$('sizeSeg').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;state.size=+b.dataset.v;syncControls()});
+$('reroll').addEventListener('click',()=>{state.seed=Math.floor(Math.random()*999999);render();drawThumbs()});
+
+// ---------- 导出 ----------
+let downloads=null;
+(async()=>{try{downloads=window.claude&&window.claude.use?await window.claude.use('downloads'):null}catch(e){downloads=null}})();
+let toastTimer;
+function toast(msg){const t=$('toast');t.textContent=msg;t.classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.classList.remove('show'),2200)}
+function fileBase(){return `pixel-sea-${state.theme.id}-${state.seed}`}
+function showSheet(url){$('sheetImg').src=url;$('sheet').hidden=false}
+$('sheetClose').addEventListener('click',()=>{$('sheet').hidden=true});
+async function offer(filename,blob){
+  if(downloads){
+    try{await downloads.save({filename,data:blob});toast('已保存 '+filename);return}
+    catch(e){
+      if(e&&e.code==='declined'){toast('已取消保存');return}
+      if(e&&e.code==='rate_limited'){toast('已有一个保存窗口，请先处理');return}
+    }
+  }
+  showSheet(URL.createObjectURL(blob));
+}
+$('savePng').addEventListener('click',()=>{
+  const S=state.size,cv=document.createElement('canvas');cv.width=cv.height=S;
+  paint(cv.getContext('2d'),model,S);
+  cv.toBlob(b=>{if(!b){toast('这个尺寸生成失败，试试 2048');return}offer(`${fileBase()}-${S}.png`,b)},'image/png');
+});
+$('saveSvg').addEventListener('click',()=>{
+  offer(`${fileBase()}.svg`,new Blob([toSVG(model)],{type:'image/svg+xml'}));
+});
+
+syncControls();render();drawThumbs();
+})();
+</script>
