@@ -126,8 +126,6 @@ html[lang=en] .seg button{font-family:var(--f-pixel);font-size:12px}
 .swipe-hint{position:absolute;left:50%;bottom:8px;transform:translateX(-50%);white-space:nowrap;font-family:var(--f-zh);font-size:12px;color:var(--fg);background:var(--bg);padding:2px 8px;pointer-events:none}
 html[lang=en] .swipe-hint{font-family:var(--f-pixel)}
 .rare-tag{position:absolute;left:8px;top:8px}
-.play{position:absolute;right:8px;top:8px;min-height:32px;font-family:var(--f-zh);font-size:12px;background:var(--bg);color:var(--fg);border-color:var(--bg)}
-html[lang=en] .play{font-family:var(--f-pixel)}
 .namebar{display:flex;align-items:center;gap:8px;width:100%;max-width:720px;justify-self:center}
 .name{flex:1;min-width:0;display:grid;gap:2px;text-align:center}
 .name b{font-family:var(--f-zh);font-weight:400;font-size:24px;line-height:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -289,7 +287,6 @@ html[lang=en] #toast{font-family:var(--f-body);font-size:13px}
       <div class="canvas-box" id="box">
         <canvas id="view" aria-label="当前画面"></canvas>
         <span class="badge rare-tag" id="rareTag" hidden>稀有 · 鲸尾</span>
-        <button class="chip play" id="play" type="button">▶ 动起来</button>
         <span class="swipe-hint" id="swipeHint" data-i="swipe">← 左右滑动换画面 →</span>
       </div>
     </div>
@@ -502,7 +499,7 @@ html[lang=en] #toast{font-family:var(--f-body);font-size:13px}
       pairTitle: '一对头像', pairExport: '导出一对', pairHint: '两张并排时浪是连着的，适合情侣或好友各用一张。',
       more: '更多', angle: '渐变方向', amp: '浪线起伏', terrace: '平台长短', bands: '色带数量', dots: '散落方块 · 密度', dotMax: '散落方块 · 最大',
       pairRatio: '散落方块 · 成对比例', sil: '剪影（月亮）', silNext: '换一个', invert: '深浅反转', play: '▶ 动起来', pause: '❚❚ 停下', rareDebug: '刷一张稀有的（调试）',
-      export: '导出 PNG / SVG', exportHint: '画布静止时显示的就是导出的画面，与编号一一对应；「动起来」只是预览浪的样子。', exTitle: '导出', res: '分辨率', shape: '形状', safe: '安全区参考线',
+      export: '导出 PNG / SVG', exportHint: '画布显示的就是导出的画面，与编号一一对应。', exTitle: '导出', res: '分辨率', shape: '形状', safe: '安全区参考线',
       format: '格式', download: '下载', longPress: '长按图片保存到相册。', close: '关闭',
       todayTitle: '今日一张', todayNote: '按你所在地的日期，同一天全世界看到同一张。每天来看一眼，日历上就多一格。', openEditor: '在编辑器里打开',
       mineTitle: '我的海', mineNote: '先选一个画面，再输入名字、一句话或生日。文字只决定底座构图，同样的输入永远是同一个构图，换台手机也一样。', byName: '名字', byBirthday: '生日', byCombo: '名字 + 生日', withYear: '含年份', make: '生成', originIs: '来自 ',
@@ -530,7 +527,7 @@ html[lang=en] #toast{font-family:var(--f-body);font-size:13px}
       pairTitle: 'Matching pair', pairExport: 'Export pair', pairHint: 'Side by side, the waves join up. One for you, one for a friend.',
       more: 'More', angle: 'Direction', amp: 'Wave height', terrace: 'Terrace length', bands: 'Bands', dots: 'Scatter · density', dotMax: 'Scatter · max size',
       pairRatio: 'Scatter · pairs', sil: 'Silhouette (moon)', silNext: 'Another', invert: 'Invert light/dark', play: '▶ Animate', pause: '❚❚ Stop', rareDebug: 'Find a rare one (debug)',
-      export: 'Export PNG / SVG', exportHint: 'The still canvas is exactly what you export and what the code stands for; “Animate” only previews the waves.', exTitle: 'Export', res: 'Resolution', shape: 'Shape', safe: 'Safe-area guide',
+      export: 'Export PNG / SVG', exportHint: 'The canvas shows exactly what you export and what the code stands for.', exTitle: 'Export', res: 'Resolution', shape: 'Shape', safe: 'Safe-area guide',
       format: 'Format', download: 'Download', longPress: 'Press and hold the image to save it.', close: 'Close',
       todayTitle: 'Picture of the day', todayNote: 'By your local date, everyone sees the same picture on the same day. Visit daily to fill your calendar.', openEditor: 'Open in editor',
       mineTitle: 'Your sea', mineNote: 'Pick a scene, then type a name or phrase, or pick a birthday. The text sets only the base composition; the same input always gives the same composition, on any device.', byName: 'Name', byBirthday: 'Birthday', byCombo: 'Name + birthday', withYear: 'Include year', make: 'Make', originIs: 'From ',
@@ -667,7 +664,7 @@ html[lang=en] #toast{font-family:var(--f-body);font-size:13px}
   const S = {
     scene: heroPick.scene, seed: heroPick.seed, grid: heroGrain, ratio: RATIOS[0], variant: heroTime, hue: 0,
     angle: null, amp: null, terrace: 1, bands: null, dots: null, dotMax: 5, pair: 0.22, silhouette: true, silSeed: 0, invert: false,
-    motion: false, tier: '4K', shape: 'square', fmt: 'png', safe: false,
+    tier: '4K', shape: 'square', fmt: 'png', safe: false,
     origin: { kind: 'hero', code: P.shortCode(heroPick.scene, heroPick.seed), day: heroDay }, edited: false,
   };
   const view = new P.View($('view'));
@@ -777,8 +774,6 @@ html[lang=en] #toast{font-family:var(--f-body);font-size:13px}
     $('silRow').hidden = sc.silhouette !== 'moon';
     $('sil').checked = S.silhouette; $('silNext').disabled = !S.silhouette;
     $('invert').checked = S.invert;
-    $('play').textContent = S.motion ? t('pause') : t('play');
-    $('play').hidden = reduce.matches;
   }
   function setScene(sc) {
     S.scene = sc;
@@ -805,14 +800,6 @@ html[lang=en] #toast{font-family:var(--f-body);font-size:13px}
   $('sil').addEventListener('change', (e) => { S.silhouette = e.target.checked; touched(); rebuild(); });
   $('silNext').addEventListener('click', () => { S.silSeed++; touched(); rebuild(300); });
   $('invert').addEventListener('change', (e) => { S.invert = e.target.checked; touched(); rebuild(400); });
-  // 默认静止：看到的就是这张图的配方帧，和导出、编号一致；点"动起来"预览浪，停下时回到配方帧
-  $('play').addEventListener('click', (e) => {
-    e.stopPropagation();
-    S.motion = !S.motion;
-    if (!S.motion) { editTime = 0; sim.setTime(0); view.render(); drawAvatars(); }
-    syncUi();
-    kick();
-  });
   $('findRare').addEventListener('click', () => {
     const s = P.findRare(S.scene, (Math.random() * 4294967296) >>> 0);
     if (s == null) { toast(t('rareNone')); return; }
@@ -1140,13 +1127,9 @@ html[lang=en] #toast{font-family:var(--f-body);font-size:13px}
       if (moving && tick) heroSim.setTime(P.globalTime());
       if ((moving && tick) || heroView.busy) heroView.render();
     }
-    if (editVisible) {
-      const anim = moving && S.motion;
-      if (anim && tick) { editTime += 1 / FPS; sim.setTime(editTime); }
-      if ((anim && tick) || view.busy) { view.render(); drawAvatars(); }
-    }
+    if (editVisible && view.busy) { view.render(); drawAvatars(); } // 编辑区静止，只在溶解过渡时逐帧刷新
     if (tick) cards.forEach((c) => { if (c.playing) { c.t += 1 / FPS; c.sim.setTime(c.t); c.view.render(); } });
-    const busy = heroView.busy || view.busy || cards.some((c) => c.playing) || (moving && (heroVisible || (editVisible && S.motion)));
+    const busy = heroView.busy || view.busy || cards.some((c) => c.playing) || (moving && heroVisible);
     if (busy) raf = requestAnimationFrame(frame);
   }
   function kick() { if (!raf && !document.hidden) { last = 0; raf = requestAnimationFrame(frame); } }
