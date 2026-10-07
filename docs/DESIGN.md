@@ -261,7 +261,7 @@ export default defineScene({
 
 仓库结构：`apps/web`、`packages/engine`、`packages/scenes`、`workers/og`、`design/`，pnpm workspace。
 
-先行上线（2026-10）：V0 工程搭好之前，先把设计稿的单页（海与水 9 个画面）作为第一版部署出去。`design/tools/build-site.mjs` 把设计稿组装到 `site/`，`wrangler.jsonc` 把它作为 Workers 静态资源发布；Cloudflare 连接 GitHub 仓库后，推送 main 自动部署。V0 工程完成后替换这一版。
+先行上线（2026-10）：V0 工程搭好之前，先把设计稿的单页（海与水 9 个画面）作为第一版部署出去。`design/tools/build-site.mjs` 把设计稿组装到 `site/`，`wrangler.jsonc` 把它作为 Workers 静态资源发布；Cloudflare 连接 GitHub 仓库后，推送 main 自动部署。2026-10-07 已由 V0 替换。
 
 V0 上线方式：网站在 `apps/web`（Astro 静态构建，产物 `apps/web/dist`），Workers Builds 构建命令改为 `pnpm build`（依赖按 `pnpm-lock.yaml` 自动安装），部署命令仍是 `npx wrangler deploy`。分享链接 `/p/<编号>` 没有对应文件，靠静态资源的单页回退（`not_found_handling: single-page-application`）回到首页，由前端解析；第一版的旧地址 `/home`、`/editor` 用 `_redirects` 301 到首页，`#编号` 照样打开那张图。PNG 全部档位改用索引色编码器，8K 也能在手机上导出。
 
@@ -275,7 +275,7 @@ V0 上线方式：网站在 `apps/web`（Astro 静态构建，产物 `apps/web/d
 ## 12. 迭代计划
 
 1. **设计稿**：在 `design/` 下做首页与编辑器的可交互原型（单文件 HTML，手机优先），定下视觉风格。不搭工程。
-2. **V0**：引擎包、四种构图、首页与编辑器合并的单页、全球同步的海、"今日一张"、深浅两套界面、海与水 9 个画面、全部比例与 1080p–8K PNG / SVG 导出、分享短码、中英双语，部署到 pixtides.com。
+2. **V0**（2026-10-07 已上线）：引擎包、四种构图、首页与编辑器合并的单页、全球同步的海、"今日一张"、深浅两套界面、海与水 9 个画面、全部比例与 1080p–8K PNG / SVG 导出、分享短码、中英双语，部署到 pixtides.com。
 3. **V1**：画廊、36 个画面、剪影与光点、分享预览图、上传图片转像素（含内容安全）、我的海、稀有彩蛋、一对头像、收集日历。
 4. **V2**：自建锚点配色、锁定骰子、派生关系、GIF / MP4 动图导出。
 5. **V3（可选）**：收藏、我的作品、投稿画面定义，用 Cloudflare D1。
@@ -296,7 +296,7 @@ V0 上线方式：网站在 `apps/web`（Astro 静态构建，产物 `apps/web/d
 | 导出 | 1080p 到 8K 全覆盖，含圆形与圆角 |
 | 导出尺寸 | 横向按长边，竖向按短边，1:1 用 1080 / 2048 / 4096 / 5120 / 8192；格宽除不尽时相邻格子差 1 px，格子小于约 6 px 时提示换高一档 |
 | 分享短码 | Crockford base32，不区分大小写，显示为大写分组 |
-| 第一版上线 | 2026-10-07 设计稿单页（海与水 9 个画面）上线 pixtides.com：Cloudflare Workers 静态资源，连接 GitHub 仓库，推送 main 自动部署；V0 工程完成后替换 |
+| 第一版上线 | 2026-10-07 设计稿单页（海与水 9 个画面）上线 pixtides.com：Cloudflare Workers 静态资源，连接 GitHub 仓库，推送 main 自动部署；2026-10-07 已由 V0 替换 |
 | V0 工程 | pnpm 工作区：`packages/engine`（TypeScript，与设计稿引擎逐格一致，老编号还原同一张）、`packages/scenes`、`apps/web`（Astro，单页搬过来，暂不用 Preact）；编号带上改动过的参数；分享链接 `/p/<编号>`；PNG 走索引色编码器到 8K |
 | 页面结构 | 首页与编辑器合并成同一页：手机往下滚进入编辑区，桌面左画布右面板 |
 | 界面主题 | 深色、浅色两套，默认跟随系统，可手动切换 |
