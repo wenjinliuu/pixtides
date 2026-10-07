@@ -92,6 +92,11 @@ const hueToward = (h1: number, h2: number, t: number) => {
   return (h1 + dh * t + 360) % 360;
 };
 
+const hueShort = (h1: number, h2: number, t: number) => {
+  let dh = (((h2 - h1) % 360) + 540) % 360 - 180;
+  return (h1 + dh * t + 360) % 360;
+};
+
 interface SkySpec { kd?: number; kl?: number; cs?: number; k?: number; stops: Lch[] }
 /**
  * 每个时段取这段时间里最好看的那一刻做基调：
@@ -112,7 +117,8 @@ function skyAt(stops: Lch[], r: number): Lch {
   return [A[0] + (B[0] - A[0]) * f, A[1] + (B[1] - A[1]) * f, hueToward(A[2], B[2], f)];
 }
 
-export function variantPalette(pal: Hex[], kind: Variant): Hex[] {
+/** strength：往天色靠拢的程度，1 = 完全按天色（海与水）；暖色或本身颜色就是主体的画面用小一点，保住自己的颜色 */
+export function variantPalette(pal: Hex[], kind: Variant, strength = 1): Hex[] {
   if (kind === 'day') return pal.slice();
   const sky = SKY[kind];
   const lch = pal.map(hexToOklch), Ls = lch.map((c) => c[0]);
@@ -120,8 +126,10 @@ export function variantPalette(pal: Hex[], kind: Variant): Hex[] {
   return lch.map((c) => {
     const r = hi > lo ? (c[0] - lo) / (hi - lo) : 0.5, tg = skyAt(sky.stops, r);
     if (kind === 'night') return oklchToHex([c[0] + (tg[0] - c[0]) * sky.k!, c[1] + (tg[1] - c[1]) * sky.k!, tg[2]]);
-    const k = sky.kd! + (sky.kl! - sky.kd!) * r;
-    return oklchToHex([c[0] + (tg[0] - c[0]) * k, (c[1] + (tg[1] - c[1]) * k) * sky.cs!, hueToward(c[2], tg[2], k)]);
+    const k = (sky.kd! + (sky.kl! - sky.kd!) * r) * strength;
+    // 海与水（strength = 1）沿用"往色相增大方向转"；暖色画面走最短的色相弧（橙 → 红 → 紫），不会经过绿色
+    const hue = strength < 1 ? hueShort(c[2], tg[2], k) : hueToward(c[2], tg[2], k);
+    return oklchToHex([c[0] + (tg[0] - c[0]) * k, (c[1] + (tg[1] - c[1]) * k) * sky.cs!, hue]);
   });
 }
 

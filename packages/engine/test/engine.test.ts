@@ -33,7 +33,8 @@ function loadProto() {
 describe('与已上线的设计稿引擎一致', () => {
   const P = loadProto();
   const cases: { id: string; o: Record<string, unknown> }[] = [];
-  for (const s of SCENES) for (const v of VARIANTS) {
+  // 只比已上线的海与水：其余分类在设计稿里只是首页缩略图，V1 重新定义
+  for (const s of LIVE) for (const v of VARIANTS) {
     cases.push({ id: s.id, o: { seed: 123456789 + s.id.length * 7919, variant: v } });
   }
   for (const id of ['shoal', 'tide', 'ripple', 'waterfall', 'moonsea', 'abyss']) {
