@@ -649,20 +649,22 @@
     return out.join('');
   }
 
-  // 导出分辨率：长边 1920/2560/3840/5120/7680；1:1 按 DESIGN.md 用 1080/2048/4096/(5120)/8192
+  // 导出分辨率
+  // 横向比例按长边 1920/2560/3840/5120/7680；竖向比例按短边 1080/1440/2160/2880/4320（手机壁纸不缩水）；
+  // 1:1 暂按 DESIGN.md 用 1080/2048/4096/(5120)/8192，规则待定
   const TIERS = [
-    { id: '1080p', long: 1920, square: 1080 },
-    { id: '2K', long: 2560, square: 2048 },
-    { id: '4K', long: 3840, square: 4096 },
-    { id: '5K', long: 5120, square: 5120 },
-    { id: '8K', long: 7680, square: 8192 },
+    { id: '1080p', long: 1920, short: 1080, square: 1080 },
+    { id: '2K', long: 2560, short: 1440, square: 2048 },
+    { id: '4K', long: 3840, short: 2160, square: 4096 },
+    { id: '5K', long: 5120, short: 2880, square: 5120 },
+    { id: '8K', long: 7680, short: 4320, square: 8192 },
   ];
   function exportSize(tierId, ratio) {
     const t = TIERS.find((x) => x.id === tierId) || TIERS[0];
     const [a, b] = ratio;
-    if (a === b) return [t.square, t.square];
     const even = (v) => Math.round(v / 2) * 2;
-    return a > b ? [t.long, even((t.long * b) / a)] : [even((t.long * a) / b), t.long];
+    if (a === b) return [t.square, t.square];
+    return a > b ? [t.long, even((t.long * b) / a)] : [t.short, even((t.short * b) / a)];
   }
 
   // ---------- 编号（设计稿示意：场景码 + base62 种子） ----------

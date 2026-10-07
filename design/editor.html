@@ -324,7 +324,7 @@ html[lang=en] #toast{font-family:var(--f-body);font-size:13px}
       export: '导出 PNG / SVG', exportHint: '导出的是这张图的静止画面，与编号一一对应。', exTitle: '导出', res: '分辨率', shape: '形状',
       safe: '安全区参考线', format: '格式', download: '下载', longPress: '长按图片保存到相册。', close: '关闭',
       radial: '径向', cells: '格', lang: 'EN', prev: '上一个画面', next: '下一个画面',
-      pngHint: 'PNG 设计稿阶段用 canvas 编码，最高 4K；5K / 8K 在 V0 改用索引色编码器。', svgHint: 'SVG 同色合并成长矩形，任意放大都清晰。',
+      pngHint: 'PNG 设计稿阶段用 canvas 编码，最高 4K 档；5K / 8K 在 V0 改用索引色编码器。竖向比例按短边算。', svgHint: 'SVG 同色合并成长矩形，任意放大都清晰。',
       toCircle: '圆形头像用 1:1，已切到 1:1', saved: '已保存 ', declined: '已取消保存', busy: '已有一个保存窗口，请先处理',
       failed: '这个尺寸生成失败，换小一档试试', making: '正在生成…',
     },
@@ -336,7 +336,7 @@ html[lang=en] #toast{font-family:var(--f-body);font-size:13px}
       export: 'Export PNG / SVG', exportHint: 'Exports the still frame that matches this picture code.', exTitle: 'Export', res: 'Resolution', shape: 'Shape',
       safe: 'Safe-area guide', format: 'Format', download: 'Download', longPress: 'Press and hold the image to save it.', close: 'Close',
       radial: 'radial', cells: 'cells', lang: '中', prev: 'Previous scene', next: 'Next scene',
-      pngHint: 'Prototype PNG uses canvas, up to 4K. 5K / 8K come with the indexed-color encoder in V0.', svgHint: 'SVG merges same-color runs into long rects; sharp at any size.',
+      pngHint: 'Prototype PNG uses canvas, up to the 4K tier. 5K / 8K come with the indexed-color encoder in V0. Portrait ratios are sized by the short edge.', svgHint: 'SVG merges same-color runs into long rects; sharp at any size.',
       toCircle: 'Circle avatars are 1:1, switched to 1:1', saved: 'Saved ', declined: 'Save canceled', busy: 'A save prompt is already open',
       failed: 'That size failed, try a smaller one', making: 'Rendering…',
     },
@@ -563,9 +563,10 @@ html[lang=en] #toast{font-family:var(--f-body);font-size:13px}
   });
 
   // ---------- 导出 ----------
-  const MAX_PNG = 4096;
+  // 设计稿阶段 PNG 走 canvas：只开放到 4K 档，且总像素不超过 iOS 画布上限 4096²
+  const PNG_TIERS = ['1080p', '2K', '4K'], MAX_AREA = 4096 * 4096;
   function exportDims() { return P.exportSize(S.tier, S.ratio.r); }
-  function pngAllowed(tier) { const [w, h] = P.exportSize(tier, S.ratio.r); return Math.max(w, h) <= MAX_PNG; }
+  function pngAllowed(tier) { const [w, h] = P.exportSize(tier, S.ratio.r); return PNG_TIERS.includes(tier) && w * h <= MAX_AREA; }
   function syncExport() {
     press($('tierChips'), S.tier);
     $('tierChips').querySelectorAll('[data-v]').forEach((b) => {
