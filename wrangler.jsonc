@@ -9,5 +9,7 @@
     "directory": "./apps/web/dist",
     // 没有对应文件的地址都回到首页，由前端解析：/p/<编号> 是分享链接
     "not_found_handling": "single-page-application"
-  }
+  },
+  // PR 分支的预览部署（Workers Builds 跑 npx wrangler preview）要求有这个块，内容可以为空
+  "previews": {}
 }
