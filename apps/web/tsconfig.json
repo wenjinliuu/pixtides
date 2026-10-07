@@ -1,0 +1,7 @@
+{
+  "extends": "astro/tsconfigs/strict",
+  "compilerOptions": {
+    "paths": { "@pixtides/*": ["../../packages/*/src/index.ts"] }
+  },
+  "include": [".astro/types.d.ts", "src"]
+}

@@ -1,0 +1,5 @@
+# 页面默认 max-age=0, must-revalidate（Cloudflare 静态资源的默认值）；带哈希的构建产物可以永久缓存
+/*
+  X-Content-Type-Options: nosniff
+/_astro/*
+  Cache-Control: public, max-age=31536000, immutable

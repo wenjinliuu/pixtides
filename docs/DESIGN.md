@@ -184,9 +184,9 @@ export default defineScene({
 
 ## 8. 作品编号与分享
 
-每张图的编号就是它的配方：画面 + 种子 + 全部参数，打包成短码，只记录改动过的参数（没碰"更多"时约 10–12 位，全部调过约 20 位），例如 `/p/sh-7kq9zt2mxy3`，页面和图片角落显示为大写分组的 `SH-7KQ9-ZT2M-XY3`。打开链接时引擎按同一配方重画，得到像素级一致的图。
+每张图的编号就是它的配方：画面 + 种子 + 全部参数，打包成短码，只记录改动过的参数（没改参数 10 位，改了粒度、配色等约 14 位，全部调过 24 位），例如 `/p/SH-7KQ9-ZT2M-3F0Q`，页面和图片角落显示为大写分组的 `SH-7KQ9-ZT2M-3F0Q`。打开链接时引擎按同一配方重画，得到像素级一致的图。
 
-1. 参数按固定顺序写成二进制，开头带引擎版本号，再转 Crockford base32（0–9 加去掉 I、L、O、U 的 22 个字母）。不区分大小写，输入时自动把 O 当 0、I 和 L 当 1，适合印在图上让人照着念、照着敲。
+1. 编号 = 画面码 2 位 + 种子 8 位 +（改过参数时）参数段：参数段先用 14 位标记哪些参数改过，再按固定顺序接上它们的值（量化到界面滑块的步长），转 Crockford base32（0–9 加去掉 I、L、O、U 的 22 个字母）。v1 编号不带版本字符；以后格式升级时在最前面加版本字符，不带版本字符的编号永远按 v1 解析。今日一张、我的海这类用默认参数的图编号就是 10 位。不区分大小写，输入时自动把 O 当 0、I 和 L 当 1，适合印在图上让人照着念、照着敲。
 2. 解码在浏览器里完成，不查数据库、不存图片。
 3. 旧版本生成器保留在代码里，按短码版本号调用，老链接永远还原原样。
 4. 社交平台抓取链接时，Worker 按短码现场画出预览图并缓存。
@@ -252,7 +252,7 @@ export default defineScene({
 | 层 | 选择 |
 | --- | --- |
 | 引擎 | `packages/engine`，纯 TypeScript，无依赖，浏览器与 Worker 共用 |
-| 网站 | Astro + Preact 小组件 |
+| 网站 | Astro 静态构建；V0 只有一个页面，交互用纯 TypeScript 模块，组件多起来（画廊、上传）再引入 Preact |
 | 绘制 | Canvas 2D，`ImageData` 直接写像素 |
 | 托管 | Cloudflare Workers（静态资源 + Workers Builds），推 main 自动部署 |
 | 分享预览图 | Worker 路由 `/og/...`，引擎出 SVG，`resvg-wasm` 转 PNG，边缘缓存 |
@@ -262,6 +262,8 @@ export default defineScene({
 仓库结构：`apps/web`、`packages/engine`、`packages/scenes`、`workers/og`、`design/`，pnpm workspace。
 
 先行上线（2026-10）：V0 工程搭好之前，先把设计稿的单页（海与水 9 个画面）作为第一版部署出去。`design/tools/build-site.mjs` 把设计稿组装到 `site/`，`wrangler.jsonc` 把它作为 Workers 静态资源发布；Cloudflare 连接 GitHub 仓库后，推送 main 自动部署。V0 工程完成后替换这一版。
+
+V0 上线方式：网站在 `apps/web`（Astro 静态构建，产物 `apps/web/dist`），Workers Builds 构建命令改为 `pnpm build`（依赖按 `pnpm-lock.yaml` 自动安装），部署命令仍是 `npx wrangler deploy`。分享链接 `/p/<编号>` 没有对应文件，靠静态资源的单页回退（`not_found_handling: single-page-application`）回到首页，由前端解析；第一版的旧地址 `/home`、`/editor` 用 `_redirects` 301 到首页，`#编号` 照样打开那张图。PNG 全部档位改用索引色编码器，8K 也能在手机上导出。
 
 部署两步走：
 
@@ -295,6 +297,7 @@ export default defineScene({
 | 导出尺寸 | 横向按长边，竖向按短边，1:1 用 1080 / 2048 / 4096 / 5120 / 8192；格宽除不尽时相邻格子差 1 px，格子小于约 6 px 时提示换高一档 |
 | 分享短码 | Crockford base32，不区分大小写，显示为大写分组 |
 | 第一版上线 | 2026-10-07 设计稿单页（海与水 9 个画面）上线 pixtides.com：Cloudflare Workers 静态资源，连接 GitHub 仓库，推送 main 自动部署；V0 工程完成后替换 |
+| V0 工程 | pnpm 工作区：`packages/engine`（TypeScript，与设计稿引擎逐格一致，老编号还原同一张）、`packages/scenes`、`apps/web`（Astro，单页搬过来，暂不用 Preact）；编号带上改动过的参数；分享链接 `/p/<编号>`；PNG 走索引色编码器到 8K |
 | 页面结构 | 首页与编辑器合并成同一页：手机往下滚进入编辑区，桌面左画布右面板 |
 | 界面主题 | 深色、浅色两套，默认跟随系统，可手动切换 |
 | 玩法 | 全球同步的海、今日一张（本地日期、算法带版本号）、我的海、稀有彩蛋、一对头像、收集日历、派生关系，全部做 |
