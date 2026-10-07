@@ -11,7 +11,7 @@
 | --- | --- |
 | `packages/engine` | 引擎：场景 + 参数 + 种子 + 时间 → 格子矩阵；预览、PNG（索引色，到 8K）、SVG、编号、文字种子 |
 | `packages/scenes` | 场景定义，加新画面只改这里 |
-| `apps/web` | 网站（Astro 静态构建），首页与编辑器同一页 |
+| `apps/web` | 网站（Astro 静态构建）：首页与编辑器同一页，`/gallery` 画廊 |
 | `design/` | 设计稿，引擎测试拿它的 `proto-engine.js` 核对逐格一致 |
 
 ```bash

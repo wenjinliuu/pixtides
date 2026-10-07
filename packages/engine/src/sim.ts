@@ -1,13 +1,14 @@
 // 生成：场景 + 参数 + 种子 + 时间 → 半格网格（2G）上的色阶编号矩阵 cells。
 // 预览、动画、PNG、SVG 都从同一个 cells 出图。动画是时间的纯函数：同一种子、同一时刻，任何设备得到同一帧。
 
-import { hueRotate, ramp, variantPalette } from './color';
+import { adjust, hexToOklch, ramp, variantPalette } from './color';
 import { hashStr, mulberry32, seedMix, SEED_SPACE, tickRng, type Rng } from './rng';
-import type { Hex, Scene, SimOptions, Variant } from './types';
+import { buildSilhouettes, detailUnit, type SilLayer } from './silhouettes';
+import type { Hex, Scene, SilKind, SimOptions, Variant } from './types';
 
 export const DEFAULTS: SimOptions = {
   grid: 32, ratio: [1, 1], seed: 1, angle: null, amp: null, terrace: 1, bands: null,
-  dots: null, dotMax: 5, pair: 0.22, invert: false, hue: 0, variant: 'day',
+  dots: null, dotMax: 5, pair: 0.22, invert: false, hue: 0, sat: 1, light: 0, variant: 'day',
   silhouette: true, silSeed: 0, palette: null, time: 0, rare: true,
 };
 
@@ -35,9 +36,9 @@ export function scenePalette(scene: Scene, o: SimOptions): Hex[] {
   else if (timeSet?.a) pal = ramp(timeSet.a, n);
   else {
     pal = scene.pal && n === scene.pal.length ? scene.pal.slice() : ramp((scene.pal || scene.anchors)!, n);
-    if (v !== 'day') pal = variantPalette(pal, v);
+    if (v !== 'day') pal = variantPalette(pal, v, scene.tint ?? 1);
   }
-  if (o.hue) pal = pal.map((h) => hueRotate(h, o.hue));
+  if (o.hue || o.sat !== 1 || o.light) pal = pal.map((h) => adjust(h, o.hue, o.sat, o.light));
   if (o.invert) pal.reverse();
   return pal;
 }
@@ -50,6 +51,7 @@ interface Bound {
 }
 interface Dot { x0: number; y0: number; x: number; y: number; w: number; h: number; col0: number; col: number; off: boolean }
 interface Glow { x: number; y: number; s: number; ph: number; per: number; seq: number[] }
+interface Bolt { k: number; cells: number[] }
 interface Moon { mx: number; my: number; R: number; off: { x: number; y: number } | null; halos: number; spots: { x: number; y: number; s: number }[] }
 
 export class Sim {
@@ -91,6 +93,9 @@ export class Sim {
   private readonly glows: Glow[] = [];
   private moon: Moon | null = null;
   private readonly whale: { x: number; y: number } | null = null;
+  private readonly sils: SilLayer[] = [];
+  private readonly boltIdx: number = -1;
+  private bolt: Bolt | null = null;
 
   constructor(scene: Scene, opts: Partial<SimOptions> = {}) {
     const o = (this.o = { ...DEFAULTS, ...opts });
@@ -111,12 +116,26 @@ export class Sim {
     const vkey: Variant = o.variant;
     const timeSet = vkey !== 'day' ? scene.times?.[vkey] ?? null : null;
     // 有时段反光色时，光点也换成这个时刻的颜色（深海夜里是蓝色荧光）
-    const glow = (timeSet && scene.glow ? timeSet.glints : scene.glow || []).map((h) => hueRotate(h, o.hue));
-    const glints = timeSet ? timeSet.glints.map((h) => hueRotate(h, o.hue)) : [];
+    const tone = (h: Hex) => adjust(h, o.hue, o.sat, o.light);
+    const glow = (timeSet && scene.glow ? timeSet.glints : scene.glow || []).map(tone);
+    const glints = timeSet ? timeSet.glints.map(tone) : [];
     this.glowStart = L;
     this.moonIdx = L + glow.length;
     this.glintStart = L + glow.length + (scene.moon ? 1 : 0);
-    this.pal = bandPal.concat(glow, scene.moon ? [hueRotate(scene.moon, o.hue)] : [], glints);
+    this.pal = bandPal.concat(glow, scene.moon ? [tone(scene.moon)] : [], glints);
+    if (scene.bolt) { this.boltIdx = this.pal.length; this.pal.push(tone(scene.bolt)); }
+    // 剪影自带的颜色：和白天的色带放在一起换时段色，保证晨 / 昏 / 夜里也协调
+    const extras: Hex[] = [...(scene.ridge?.colors || []), ...(scene.ridge?.snowColor ? [scene.ridge.snowColor] : []), ...(scene.silColor ? [scene.silColor] : [])];
+    const extraStart = this.pal.length;
+    if (extras.length) {
+      const day = scenePalette(scene, { ...o, variant: 'day', hue: 0, sat: 1, light: 0, invert: false, palette: null });
+      const shifted = vkey === 'day' ? extras : variantPalette(day.concat(extras), vkey, vkey === 'night' ? 1 : scene.tint ?? 1).slice(day.length);
+      this.pal.push(...shifted.map(tone));
+    }
+    let ei = extraStart;
+    const ridgeIdx = scene.ridge?.colors ? scene.ridge.colors.map(() => ei++) : null;
+    const snowIdx = scene.ridge?.snowColor ? ei++ : -1;
+    const silIdx = scene.silColor ? ei++ : -1;
 
     // 几何
     const amp = o.amp != null ? o.amp : scene.amp != null ? scene.amp : 1;
@@ -129,6 +148,7 @@ export class Sim {
     const aw = W / S, ah = H / S;
     let cx = 0, cy = 0;
     if (radial) { cx = (rnd() - 0.5) * 0.3 * Math.min(aw, ah); cy = (rnd() - 0.5) * 0.3 * Math.min(aw, ah); }
+    if (radial && scene.center) { cx = scene.center[0] * Math.min(aw, ah); cy = scene.center[1] * Math.min(aw, ah); }
     const extV = radial ? Math.hypot(aw / 2 + Math.abs(cx), ah / 2 + Math.abs(cy)) * 0.9 : 0.5 * (Math.abs(c) * aw + Math.abs(s) * ah);
     const extU = 0.5 * (Math.abs(s) * aw + Math.abs(c) * ah);
     const gap = (this.gap = (radial ? extV : 2 * extV) / L);
@@ -238,8 +258,13 @@ export class Sim {
       }
     }
 
-    // 剪影：月亮
-    if (scene.silhouette === 'moon' && o.silhouette) this.makeMoon();
+    // 剪影：月亮沿用原来的画法；其余剪影各有独立的随机数流
+    const kinds: SilKind[] = scene.silhouette ? ([] as SilKind[]).concat(scene.silhouette) : [];
+    if (kinds.includes('moon') && o.silhouette) this.makeMoon();
+    if (o.silhouette) {
+      const ctx = { W, H, S, L, layer: this.layer, lum: bandPal.map((h) => hexToOklch(h)[0]), disc: scene.moon ? this.moonIdx : -1, ridgeIdx, snowIdx, silIdx };
+      this.sils = buildSilhouettes(kinds.filter((k) => k !== 'moon'), scene, ctx, seed, o.silSeed);
+    }
 
     // 稀有彩蛋：鲸尾
     this.rare = o.rare ? rareOf(scene, seed) : null;
@@ -361,7 +386,7 @@ export class Sim {
     }
   }
 
-  /** 合成一帧：色带 → 补丁 → 散落方块 → 光点 → 月亮 → 鲸尾 */
+  /** 合成一帧：色带 → 补丁 → 散落方块 → 光点 → 月亮 → 闪电 → 剪影 → 鲸尾 */
   private compute(): void {
     const { W, H, L, layer, cells } = this;
     this.events();
@@ -376,11 +401,25 @@ export class Sim {
       for (let y = Math.max(0, d.y); y < Math.min(H, d.y + d.h); y++)
         for (let x = Math.max(0, d.x); x < Math.min(W, d.x + d.w); x++) cells[y * W + x] = d.col;
     }
+    const gm = this.scene.glowMotion || 'twinkle', t = this.t;
     for (const g of this.glows) {
-      const idx = g.seq[Math.floor((this.t / g.per + g.ph) * g.seq.length) % g.seq.length];
-      if (idx < 0) continue;
-      for (let y = g.y; y < Math.min(H, g.y + g.s); y++) for (let x = g.x; x < Math.min(W, g.x + g.s); x++) cells[y * W + x] = idx;
+      if (gm === 'twinkle') {
+        const idx = g.seq[Math.floor((t / g.per + g.ph) * g.seq.length) % g.seq.length];
+        if (idx < 0) continue;
+        for (let y = g.y; y < Math.min(H, g.y + g.s); y++) for (let x = g.x; x < Math.min(W, g.x + g.s); x++) cells[y * W + x] = idx;
+        continue;
+      }
+      const idx = g.seq[0];
+      if (gm === 'fall') { // 飘落：慢慢往下，左右轻晃，出底边后从顶上回来
+        const yy = (((g.y + Math.floor(t * (1 + g.per))) % H) + H) % H;
+        const xx = g.x + Math.round(Math.sin(t * 0.8 + g.ph * 6.28) * 1.2);
+        for (let y = yy; y < Math.min(H, yy + g.s); y++) for (let x = Math.max(0, xx); x < Math.min(W, xx + g.s); x++) cells[y * W + x] = idx;
+      } else { // 雨丝：竖着的短线，快速落下
+        const yy = (((g.y + Math.floor(t * (10 + g.per * 3))) % (H + 4)) + H + 4) % (H + 4) - 4;
+        for (let y = Math.max(0, yy); y < Math.min(H, yy + 3); y++) cells[y * W + g.x] = idx;
+      }
     }
+
     const m = this.moon;
     if (m) {
       const outer = m.R + m.halos * 1.6;
@@ -396,6 +435,9 @@ export class Sim {
         for (let y = sp.y; y < sp.y + sp.s; y++) for (let x = sp.x; x < sp.x + sp.s; x++)
           if (x >= 0 && y >= 0 && x < W && y < H) cells[y * W + x] = L - 1;
     }
+    // 闪电和其余剪影画在月亮之后：月亮在天上，山、树、船在它前面
+    this.drawBolt(cells);
+    for (const s of this.sils) s.draw(cells, t);
     const wh = this.whale;
     if (wh) {
       const cy = Math.min(H - 1, wh.y + WHALE.length), cx = Math.min(W - 1, wh.x + WHALE[0].length);
@@ -410,6 +452,29 @@ export class Sim {
         }
       });
     }
+  }
+
+  /** 闪电：每半秒一个时间片，按时间片的随机数决定劈不劈；t = 0 那一刻一定有一道（导出的图带着闪电） */
+  private drawBolt(cells: Uint8Array): void {
+    if (this.boltIdx < 0) return;
+    const { W, H } = this, slot = 0.5, k = Math.floor(this.t / slot), into = this.t - k * slot;
+    const strike = k === 0 ? into < 0.4 : tickRng(this.seed, 'bolt', k)() < 0.1 && into < 0.25;
+    if (!strike) return;
+    if (!this.bolt || this.bolt.k !== k) {
+      const r = mulberry32(seedMix(this.seed, 'bolt/' + k)), path: number[] = [], u = 2 * detailUnit(this.S);
+      const walk = (x: number, y: number, end: number, branch: boolean) => {
+        for (; y < end; y += u) {
+          const nx = x + (Math.floor(r() * 3) - 1) * u;
+          // 横向错开时把上下两段连起来，闪电是一整道折线
+          for (let yy = y; yy < y + u; yy++) for (let xx = Math.min(x, nx); xx < Math.max(x, nx) + u; xx++) if (xx >= 0 && xx < W && yy < H) path.push(yy * W + xx);
+          x = nx;
+          if (branch && r() < 0.12) walk(x, y + u, Math.min(end, y + u + Math.round(H * 0.15)), false);
+        }
+      };
+      walk(Math.round((0.15 + r() * 0.7) * W / 2) * 2, 0, Math.round(H * (0.35 + r() * 0.35)), true);
+      this.bolt = { k, cells: path };
+    }
+    for (const i of this.bolt.cells) cells[i] = this.boltIdx;
   }
 
   /** 跳到绝对时刻 t（秒）。同一种子、同一 t，任何设备得到同一帧 */

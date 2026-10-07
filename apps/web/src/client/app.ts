@@ -21,7 +21,7 @@ const T = {
     grainChip: '粒度 · {g}',
     sync: '此刻全世界看到同一片浪', dayPlate: '今日一张 · 第 {n} 张 · {name}', rollPlate: '回看 {d} · 第 {n} 张 · {name}', backToday: '回到今天',
     calendar: '日历', calTitle: '今日一张 · 日历', calNote: '每天打开就收集当天那张。点任意一天，第一屏换成那天的海，浪仍和全世界同步。',
-    mineScene: '画面', autoScene: '自动', palFollow: '跟随首页', fromDay: '{d} 的今日一张', swipe: '← 左右滑动换画面 →', dice: '换一张', scene: '画面 · 海与水', grain: '像素粒度', ratio: '画面比例',
+    mineScene: '画面', autoScene: '自动', sat: '饱和度', light: '明暗', sceneOf: '画面 · {c}', palDefault: '原色', gallery: '画廊', palFollow: '跟随首页', fromDay: '{d} 的今日一张', swipe: '← 左右滑动换画面 →', dice: '换一张', scene: '画面 · 海与水', grain: '像素粒度', ratio: '画面比例',
     palette: '配色', hue: '色相整体旋转', avatar: '头像预览', circle: '圆形', rounded: '圆角', square: '方',
     pairTitle: '一对头像', pairExport: '导出一对', pairHint: '两张并排时浪是连着的，适合情侣或好友各用一张。',
     more: '更多', angle: '渐变方向', amp: '浪线起伏', terrace: '平台长短', bands: '色带数量', dots: '散落方块 · 密度', dotMax: '散落方块 · 最大',
@@ -30,7 +30,7 @@ const T = {
     format: '格式', download: '下载', longPress: '长按图片保存到相册。', close: '关闭',
     todayTitle: '今日一张', todayNote: '按你所在地的日期，同一天全世界看到同一张。每天来看一眼，日历上就多一格。', openEditor: '在编辑器里打开',
     mineTitle: '我的海', mineNote: '先选一个画面，再输入名字、一句话或生日。文字只决定底座构图，同样的输入永远是同一个构图，换台手机也一样。', byName: '名字', byBirthday: '生日', byCombo: '名字 + 生日', withYear: '含年份', make: '生成', originIs: '来自 ',
-    catsTitle: '六类风景', catsNote: '36 个画面，同一种画风。按住卡片看它动起来。', foot: '代码 MIT · 生成的图归你，可商用 · 字体 Fusion Pixel / Silkscreen（OFL）',
+    catsTitle: '六类风景', catsNote: '{n} 个画面，同一种画风。按住卡片看它动起来。', foot: '代码 MIT · 生成的图归你，可商用 · 字体 Fusion Pixel / Silkscreen（OFL）',
     soon: 'V1 上线', radial: '径向', cells: '格', lang: 'EN', prev: '上一个画面', next: '下一个画面',
     themeAuto: '自动', themeDark: '深色', themeLight: '浅色',
     pngHint: 'PNG 用索引色编码，文件小，最高 8K。竖向比例按短边算。', svgHint: 'SVG 同色合并成长矩形，任意放大都清晰。',
@@ -49,7 +49,7 @@ const T = {
     grainChip: 'Grain · {g}',
     sync: 'Everyone sees these same waves right now', dayPlate: 'Picture of the day · No. {n} · {name}', rollPlate: 'Looking back {d} · No. {n} · {name}', backToday: 'Back to today',
     calendar: 'Calendar', calTitle: 'Picture of the day · Calendar', calNote: 'Open the site to collect that day’s picture. Tap any day to show its sea up top; the waves stay in sync with everyone.',
-    mineScene: 'Scene', autoScene: 'Auto', palFollow: 'Following home', fromDay: 'picture of {d}', swipe: '← Swipe for another scene →', dice: 'Reroll', scene: 'Scene · Sea & Water', grain: 'Pixel grain', ratio: 'Aspect ratio',
+    mineScene: 'Scene', autoScene: 'Auto', sat: 'Saturation', light: 'Brightness', sceneOf: 'Scene · {c}', palDefault: 'Original', gallery: 'Gallery', palFollow: 'Following home', fromDay: 'picture of {d}', swipe: '← Swipe for another scene →', dice: 'Reroll', scene: 'Scene · Sea & Water', grain: 'Pixel grain', ratio: 'Aspect ratio',
     palette: 'Colors', hue: 'Rotate hue', avatar: 'Avatar preview', circle: 'Circle', rounded: 'Rounded', square: 'Square',
     pairTitle: 'Matching pair', pairExport: 'Export pair', pairHint: 'Side by side, the waves join up. One for you, one for a friend.',
     more: 'More', angle: 'Direction', amp: 'Wave height', terrace: 'Terrace length', bands: 'Bands', dots: 'Scatter · density', dotMax: 'Scatter · max size',
@@ -58,7 +58,7 @@ const T = {
     format: 'Format', download: 'Download', longPress: 'Press and hold the image to save it.', close: 'Close',
     todayTitle: 'Picture of the day', todayNote: 'By your local date, everyone sees the same picture on the same day. Visit daily to fill your calendar.', openEditor: 'Open in editor',
     mineTitle: 'Your sea', mineNote: 'Pick a scene, then type a name or phrase, or pick a birthday. The text sets only the base composition; the same input always gives the same composition, on any device.', byName: 'Name', byBirthday: 'Birthday', byCombo: 'Name + birthday', withYear: 'Include year', make: 'Make', originIs: 'From ',
-    catsTitle: 'Six worlds', catsNote: '36 scenes, one style. Press and hold a card to see it move.', foot: 'Code MIT · Your pictures are yours, commercial use OK · Fonts Fusion Pixel / Silkscreen (OFL)',
+    catsTitle: 'Six worlds', catsNote: '{n} scenes, one style. Press and hold a card to see it move.', foot: 'Code MIT · Your pictures are yours, commercial use OK · Fonts Fusion Pixel / Silkscreen (OFL)',
     soon: 'In V1', radial: 'radial', cells: 'cells', lang: '中', prev: 'Previous scene', next: 'Next scene',
     themeAuto: 'Auto', themeDark: 'Dark', themeLight: 'Light',
     pngHint: 'PNG uses indexed color: small files, up to 8K. Portrait ratios are sized by the short edge.', svgHint: 'SVG merges same-color runs into long rects; sharp at any size.',
@@ -120,7 +120,9 @@ const hero = $('hero');
 const heroView = new P.View($('sea'));
 let todayKey = P.localDateKey(new Date());
 let heroDay = todayKey, heroPick = P.dayPick(todayKey, SEA), heroSim: Sim | null = null;
-let timeMode: 'auto' | Variant = 'auto', heroTime: Variant = P.timeOfDay(), heroVisible = true;
+// 第一屏固定用今日那张的默认配色（不再按本地时段换色）；浪仍按全球时间同步
+const heroTime: Variant = 'day';
+let heroVisible = true;
 // 第一屏粒度：与编辑区"像素粒度"同一组 8 档（短边格数），点一下换下一档，记在本机
 const GRIDS: readonly number[] = P.GRIDS;
 let heroGrain = store.get('pt-grain', 32);
@@ -142,20 +144,12 @@ function updateDayPlate() {
   $('dayPlate').textContent = t(heroDay === todayKey ? 'dayPlate' : 'rollPlate', vars) + (heroSim && heroSim.rare ? ' · ' + t('rare') : '');
   $('backToday').hidden = heroDay === todayKey;
 }
-function setHeroTime(next: Variant, animate: boolean) {
-  if (next === heroTime) return;
-  heroTime = next;
-  buildHero(animate ? 1000 : 0);
-  updateTimeLabel();
-  followHero();
-}
 function setHeroDay(key: string) {
   if (key === heroDay) return;
   heroDay = key;
   buildHero(800);
   followHero();
 }
-function updateTimeLabel() { $('timeLabel').textContent = t(heroTime) + ' · ' + (timeMode === 'auto' ? t('timeAuto') : t('timeDebug')); }
 function updateSyncPlate() {
   const d = new Date(), pad = (n: number) => String(n).padStart(2, '0');
   $('syncPlate').textContent = t('sync') + ' · ';
@@ -163,14 +157,6 @@ function updateSyncPlate() {
   b.textContent = `UTC ${pad(d.getUTCHours())}:${pad(d.getUTCMinutes())}:${pad(d.getUTCSeconds())}`;
   $('syncPlate').append(b);
 }
-$('timeSeg').addEventListener('click', (e: Event) => {
-  const b = (e.target as HTMLElement).closest('button');
-  if (!b) return;
-  timeMode = b.dataset.t as typeof timeMode;
-  document.querySelectorAll('#timeSeg button').forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
-  setHeroTime(timeMode === 'auto' ? P.timeOfDay() : timeMode, true);
-  updateTimeLabel();
-});
 $('backToday').addEventListener('click', () => setHeroDay(todayKey));
 function syncGrainChip() { $('grain').textContent = t('grainChip', { g: heroGrain }); }
 $('grain').addEventListener('click', () => {
@@ -182,7 +168,6 @@ $('grain').addEventListener('click', () => {
 });
 setInterval(() => {
   updateSyncPlate();
-  if (timeMode === 'auto') setHeroTime(P.timeOfDay(), true);
   const k = P.localDateKey(new Date());
   if (k !== todayKey) { // 本地零点：换成新的一张，并收进日历
     const follow = heroDay === todayKey;
@@ -196,12 +181,12 @@ const RATIOS: readonly Ratio[] = P.RATIOS;
 const rr = (r: Ratio): [number, number] => [r.r[0], r.r[1]];
 interface Origin { kind: 'hero' | 'mine' | 'code'; code: string; day?: string; label?: string }
 const S: {
-  scene: E.Scene; seed: number; grid: number; ratio: Ratio; variant: Variant; hue: number;
+  scene: E.Scene; seed: number; grid: number; ratio: Ratio; variant: Variant; hue: number; sat: number; light: number;
   angle: number | null; amp: number | null; terrace: number; bands: number | null; dots: number | null; dotMax: number; pair: number;
   silhouette: boolean; silSeed: number; invert: boolean; tier: TierId; shape: Shape; fmt: 'png' | 'svg'; safe: boolean;
   origin: Origin | null; edited: boolean;
 } = {
-  scene: heroPick.scene, seed: heroPick.seed, grid: heroGrain, ratio: RATIOS[0], variant: heroTime, hue: 0,
+  scene: heroPick.scene, seed: heroPick.seed, grid: heroGrain, ratio: RATIOS[0], variant: heroTime, hue: 0, sat: 1, light: 0,
   angle: null, amp: null, terrace: 1, bands: null, dots: null, dotMax: 5, pair: 0.22, silhouette: true, silSeed: 0, invert: false,
   tier: '4K', shape: 'square', fmt: 'png', safe: false,
   origin: { kind: 'hero', code: P.shortCode(heroPick.scene, heroPick.seed), day: heroDay }, edited: false,
@@ -210,13 +195,13 @@ const view = new P.View($('view'));
 let sim!: Sim, editTime = 0, editVisible = false;
 // 当前这张的完整配方；编号由它算出，任何人打开同一编号都还原出同一张
 const recipe = (): Recipe => ({
-  scene: S.scene, seed: S.seed, grid: S.grid, ratio: S.ratio.id, variant: S.variant, hue: S.hue, invert: S.invert, angle: S.angle,
+  scene: S.scene, seed: S.seed, grid: S.grid, ratio: S.ratio.id, variant: S.variant, hue: S.hue, sat: S.sat, light: S.light, invert: S.invert, angle: S.angle,
   amp: S.amp, terrace: S.terrace, bands: S.bands, dots: S.dots, dotMax: S.dotMax, pair: S.pair, silhouette: S.silhouette, silSeed: S.silSeed,
 });
 const curCode = () => P.encodeRecipe(recipe());
 const shareUrl = (code: string) => location.origin + '/p/' + code;
 const simOpts = (extra?: Partial<E.SimOptions>): Partial<E.SimOptions> => Object.assign({
-  grid: S.grid, ratio: rr(S.ratio), seed: S.seed, variant: S.variant, hue: S.hue, angle: S.angle, amp: S.amp, terrace: S.terrace,
+  grid: S.grid, ratio: rr(S.ratio), seed: S.seed, variant: S.variant, hue: S.hue, sat: S.sat, light: S.light, angle: S.angle, amp: S.amp, terrace: S.terrace,
   bands: S.bands, dots: S.dots, dotMax: S.dotMax, pair: S.pair, silhouette: S.silhouette, silSeed: S.silSeed, invert: S.invert,
 }, extra);
 
@@ -244,7 +229,7 @@ function rebuild(transition = 0) {
 }
 // 换来源（此刻的海 / 今日一张 / 我的海 / 编号）时清掉"改过"标记
 function load(next: Partial<typeof S>, origin?: Origin | null) {
-  Object.assign(S, { angle: null, amp: null, bands: null, dots: null, silSeed: 0, hue: 0, invert: false, terrace: 1 }, next);
+  Object.assign(S, { angle: null, amp: null, bands: null, dots: null, silSeed: 0, hue: 0, sat: 1, light: 0, invert: false, terrace: 1 }, next);
   S.origin = origin || null;
   S.edited = false;
   editTime = 0;
@@ -274,16 +259,46 @@ function buildChips() {
     return `<button class="chip ratio" type="button" data-v="${r.id}" aria-label="${r.label}"><i style="width:${Math.round(r.r[0] * k + 4)}px;height:${Math.round(r.r[1] * k + 4)}px"></i><span>${r.label}</span></button>`;
   }).join('');
   $('tierChips').innerHTML = P.TIERS.map((x) => `<button class="chip" type="button" data-v="${x.id}">${x.id}</button>`).join('');
+  buildSceneStrip();
+}
+// 编辑区画面列表：按分类显示，分类标签只切换列表，不换当前画面
+let editCat = 'sea';
+const catScenes = (cat = editCat) => SCENES.filter((s) => s.cat === cat);
+const thumbs = new Map<string, HTMLCanvasElement>();
+function sceneThumb(s: E.Scene, px: number, grid: number): HTMLCanvasElement {
+  const key = s.id + '/' + px;
+  let cv = thumbs.get(key);
+  if (!cv) {
+    cv = document.createElement('canvas'); cv.width = cv.height = px;
+    P.paint(cv.getContext('2d')!, P.create(s, { grid, seed: P.hashStr(s.id), rare: false }), px, px);
+    thumbs.set(key, cv);
+  }
+  const copy = document.createElement('canvas'); copy.width = copy.height = px;
+  copy.getContext('2d')!.drawImage(cv, 0, 0);
+  return copy;
+}
+function buildSceneStrip() {
+  $('catTabs').innerHTML = CATEGORIES.map((c) => `<button class="chip" type="button" data-v="${c.id}">${c.name[lang]}</button>`).join('');
+  press($('catTabs'), editCat);
   const sc = $('scenes');
-  SEA.forEach((s) => {
+  sc.textContent = '';
+  for (const s of catScenes()) {
     const b = document.createElement('button');
     b.type = 'button'; b.className = 'scene'; b.dataset.v = s.id;
-    const cv = document.createElement('canvas');
-    cv.width = cv.height = 144;
-    b.append(cv, document.createElement('span'));
+    const name = document.createElement('span'); name.textContent = s.name[lang];
+    b.append(sceneThumb(s, 144, 16), name);
     sc.append(b);
-    P.paint(cv.getContext('2d')!, P.create(s, { grid: 16, seed: P.hashStr(s.id), rare: false }), 144, 144);
-  });
+  }
+  if (sim) press(sc, S.scene.id);
+}
+$('catTabs').addEventListener('click', (e: any) => { const b = e.target.closest('[data-v]'); if (b && b.dataset.v !== editCat) { editCat = b.dataset.v; buildSceneStrip(); $('scenes').scrollLeft = 0; } });
+// 精选配色：这个画面自己的几套；打开的老编号用了没列出来的槽位时，也把它显示出来
+const presetsOf = (sc: E.Scene): Variant[] => { const list = (sc.presets || ['day']).slice(); if (!list.includes(S.variant)) list.push(S.variant); return list; };
+const presetName = (sc: E.Scene, v: Variant) => (v === 'day' ? sc.look?.[lang] || t('palDefault') : sc.times?.[v]?.name?.[lang]) || t(v);
+function buildPresets() {
+  const sc = S.scene;
+  $('variantChips').innerHTML = presetsOf(sc).map((v) => `<button class="chip zhc" type="button" data-v="${v}">${presetName(sc, v)}</button>`).join('');
+  press($('variantChips'), S.variant);
 }
 const press = (el: HTMLElement, val: unknown) => el.querySelectorAll<HTMLElement>('[data-v]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.v === String(val))));
 function originText() {
@@ -294,20 +309,23 @@ function originText() {
   return t('fromCode') + ' ' + o.code;
 }
 function syncUi() {
-  const sc = S.scene, idx = SEA.indexOf(sc);
+  const sc = S.scene, list = catScenes(sc.cat), idx = list.indexOf(sc);
+  if (editCat !== sc.cat) { editCat = sc.cat; buildSceneStrip(); }
   $('name').textContent = sc.name[lang];
   $('code').textContent = curCode(); // 编号可能带参数段，不再拼格数，窄屏也放得下
   $('origin').hidden = !S.origin;
   $('origin').textContent = (S.edited ? t('originFrom') : t('originIs')) + originText();
   $('rareTag').hidden = !sim.rare;
   $('rareTag').textContent = t('rare');
-  $('sceneOut').textContent = idx + 1 + ' / ' + SEA.length;
+  $('sceneOut').textContent = idx + 1 + ' / ' + list.length;
+  $('sceneLabel').textContent = t('sceneOf', { c: CATEGORIES.find((c) => c.id === sc.cat)?.name[lang] || '' });
   press($('scenes'), sc.id);
-  document.querySelectorAll('#scenes .scene span').forEach((sp, i) => { sp.textContent = SEA[i].name[lang]; });
   press($('gridChips'), S.grid); $('gridOut').textContent = S.grid + ' ' + t('cells');
   press($('ratioChips'), S.ratio.id); $('ratioOut').textContent = S.ratio.label;
-  press($('variantChips'), S.variant);
-  $('palOut').textContent = following() ? t('palFollow') + ' · ' + t(S.variant) : t(S.variant);
+  buildPresets();
+  $('palOut').textContent = following() ? t('palFollow') + ' · ' + presetName(sc, S.variant) : presetName(sc, S.variant);
+  $('sat').value = S.sat; $('satOut').textContent = Math.round(S.sat * 100) + '%';
+  $('light').value = S.light; $('lightOut').textContent = (S.light > 0 ? '+' : '') + Math.round(S.light * 100);
   $('hue').value = S.hue; $('hueOut').textContent = S.hue + '°';
   const radial = sc.layout === 'radial', ang = S.angle != null ? S.angle : sc.angle;
   $('angle').value = ang; $('angle').disabled = radial; $('angleOut').textContent = radial ? t('radial') : ang + '°';
@@ -317,18 +335,19 @@ function syncUi() {
   const dots = S.dots ?? sc.dots ?? 1; $('dots').value = dots; $('dotsOut').textContent = (+dots).toFixed(1);
   $('dotMax').value = S.dotMax; $('dotMaxOut').textContent = (S.dotMax / 2).toFixed(1) + ' ' + t('cells');
   $('pair').value = S.pair; $('pairOut').textContent = Math.round(S.pair * 100) + '%';
-  $('silRow').hidden = sc.silhouette !== 'moon';
+  $('silRow').hidden = !sc.silhouette;
   $('sil').checked = S.silhouette; $('silNext').disabled = !S.silhouette;
   $('invert').checked = S.invert;
 }
 function setScene(sc: E.Scene) {
   S.scene = sc;
   S.angle = S.amp = S.bands = S.dots = null; S.silSeed = 0;
+  if (!(sc.presets || ['day']).includes(S.variant)) S.variant = 'day'; // 新画面没有这套配色就回到默认
   touched();
   rebuild(450);
   $('scenes').querySelector(`[data-v="${sc.id}"]`)?.scrollIntoView({ block: 'nearest', inline: 'nearest' });
 }
-const step = (d: number) => setScene(SEA[(SEA.indexOf(S.scene) + d + SEA.length) % SEA.length]);
+const step = (d: number) => { const list = catScenes(S.scene.cat); setScene(list[(list.indexOf(S.scene) + d + list.length) % list.length]); };
 $('scenes').addEventListener('click', (e: any) => { const b = e.target.closest('.scene'); if (b) setScene(P.byId[b.dataset.v]); });
 $('prev').addEventListener('click', () => step(-1));
 $('next').addEventListener('click', () => step(1));
@@ -336,7 +355,7 @@ $('dice').addEventListener('click', () => { S.seed = P.randomSeed(); S.silSeed =
 $('gridChips').addEventListener('click', (e: any) => { const b = e.target.closest('[data-v]'); if (b) { S.grid = +b.dataset.v; touched(); rebuild(); } });
 $('ratioChips').addEventListener('click', (e: any) => { const b = e.target.closest('[data-v]'); if (b) { S.ratio = RATIOS.find((r) => r.id === b.dataset.v) || RATIOS[0]; touched(); rebuild(); } });
 $('variantChips').addEventListener('click', (e: any) => { const b = e.target.closest('[data-v]'); if (b) { S.variant = b.dataset.v; touched(); rebuild(350); } });
-const sliders: Record<string, (v: string) => unknown> = { hue: (v) => (S.hue = +v), angle: (v) => (S.angle = +v), amp: (v) => (S.amp = +v), terrace: (v) => (S.terrace = +v),
+const sliders: Record<string, (v: string) => unknown> = { hue: (v) => (S.hue = +v), sat: (v) => (S.sat = Math.round(+v * 10) / 10), light: (v) => (S.light = Math.round(+v * 50) / 50), angle: (v) => (S.angle = +v), amp: (v) => (S.amp = +v), terrace: (v) => (S.terrace = +v),
   bands: (v) => (S.bands = +v), dots: (v) => (S.dots = +v), dotMax: (v) => (S.dotMax = +v), pair: (v) => (S.pair = +v) };
 let pending = 0;
 Object.keys(sliders).forEach((id) => $(id).addEventListener('input', (e: any) => {
@@ -383,7 +402,7 @@ $('editThis').addEventListener('click', (e: any) => {
   $('edit').scrollIntoView({ behavior: reduce.matches ? 'auto' : 'smooth' });
 });
 $('randomOne').addEventListener('click', () => {
-  load({ scene: SEA[Math.floor(Math.random() * SEA.length)], seed: P.randomSeed(), variant: 'day' }, null);
+  load({ scene: SCENES[Math.floor(Math.random() * SCENES.length)], seed: P.randomSeed(), variant: 'day' }, null);
   $('edit').scrollIntoView({ behavior: reduce.matches ? 'auto' : 'smooth' });
 });
 function openInEditor(next: Partial<typeof S>, origin: Origin | null) {
@@ -651,7 +670,7 @@ function buildCats() {
     const sm = document.createElement(live ? 'small' : 'span');
     sm.className = live ? '' : 'soon'; sm.textContent = live ? String(c.count) : t('soon');
     meta.append(b, sm); el.append(cv, meta); grid.append(el);
-    if (live) el.addEventListener('click', () => openInEditor({ scene: P.byId[c.cover], seed: P.randomSeed(), variant: 'day' }, null));
+    if (live) el.addEventListener('click', () => { location.href = '/gallery#' + c.id; }); // 分类卡片进画廊对应分类
     const card: Card = { el, cv, sim: P.create(P.byId[c.cover], { grid: 16, seed: P.hashStr(c.id), rare: false }), view: new P.View(cv), playing: false, t: 0 };
     const on = () => { if (!reduce.matches) { card.playing = true; kick(); } }, off = () => { card.playing = false; };
     el.addEventListener('pointerenter', on); el.addEventListener('pointerdown', on);
@@ -710,10 +729,11 @@ function applyLang() {
   document.documentElement.lang = lang === 'zh' ? 'zh-CN' : 'en';
   document.querySelectorAll<HTMLElement>('[data-i]').forEach((el) => { el.textContent = t(el.dataset.i!); });
   document.querySelectorAll<HTMLElement>('[data-i-title]').forEach((el) => { el.title = t(el.dataset.iTitle!); });
+  $('catsNote').textContent = t('catsNote', { n: SCENES.length });
   $('lang').textContent = t('lang');
   $('lang').setAttribute('aria-label', lang === 'zh' ? 'Switch to English' : '切换到中文');
   $('prev').setAttribute('aria-label', t('prev')); $('next').setAttribute('aria-label', t('next'));
-  syncThemeChip(); syncGrainChip(); updateTimeLabel(); updateSyncPlate();
+  syncThemeChip(); syncGrainChip(); updateSyncPlate();
   buildCats();
   if (sim) syncUi();
   updateDayPlate();
@@ -737,7 +757,7 @@ window.addEventListener('resize', () => {
 // ================= 启动 =================
 // 地址里的编号直接打开那张图：/p/SH-7KQ9-ZT2M（分享链接），老链接 #SH-7KQ9-ZT2M 也认
 const pathCode = decodeURIComponent(location.pathname.match(/^\/p\/([^/]+)\/?$/)?.[1] || '');
-const fromHash = P.parseRecipe(pathCode || location.hash.replace('#', ''), SEA);
+const fromHash = P.parseRecipe(pathCode || location.hash.replace('#', ''), SCENES);
 buildHero();
 lastSize = hero.clientWidth + 'x' + hero.clientHeight;
 buildChips();

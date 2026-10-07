@@ -20,6 +20,7 @@ import '../styles/site.css';
 <section class="hero" id="hero" aria-label="今日一张">
   <canvas id="sea" aria-hidden="true"></canvas>
   <div class="hero-top">
+    <a class="chip" href="/gallery" id="galleryLink" data-i="gallery">画廊</a>
     <button class="chip" id="grain" type="button">粒度 · 中</button>
     <button class="chip" id="theme" type="button">AUTO</button>
     <button class="chip" id="lang" type="button" style="min-width:48px">EN</button>
@@ -37,14 +38,6 @@ import '../styles/site.css';
     <div class="timebar">
       <span class="plate" id="dayPlate">今日一张 · No.1 · 潮汐</span>
       <span class="plate" id="syncPlate">此刻全世界看到同一片浪 · <b>UTC 00:00:00</b></span>
-      <span class="plate" id="timeLabel">昼 · 自动</span>
-      <div class="seg" id="timeSeg" role="group" aria-label="时段调试">
-        <button type="button" data-t="auto" aria-pressed="true" data-i="auto">自动</button>
-        <button type="button" data-t="dawn" data-i="dawn">晨</button>
-        <button type="button" data-t="day" data-i="day">昼</button>
-        <button type="button" data-t="dusk" data-i="dusk">昏</button>
-        <button type="button" data-t="night" data-i="night">夜</button>
-      </div>
     </div>
     <div class="hero-actions">
       <button class="btn" type="button" id="backToday" hidden data-i="backToday">回到今天</button>
@@ -74,14 +67,13 @@ import '../styles/site.css';
   <div class="drawer" aria-label="控件">
     <div class="group">
       <div class="label"><span data-i="palette">配色</span><output id="palOut">跟随首页</output></div>
-      <div class="chips" id="variantChips">
-        <button class="chip zhc" type="button" data-v="dawn" data-i="dawn">晨</button>
-        <button class="chip zhc" type="button" data-v="day" data-i="day">昼</button>
-        <button class="chip zhc" type="button" data-v="dusk" data-i="dusk">昏</button>
-        <button class="chip zhc" type="button" data-v="night" data-i="night">夜</button>
-      </div>
+      <div class="chips" id="variantChips"></div>
       <label class="label" for="hue"><span data-i="hue">色相整体旋转</span><output id="hueOut">0°</output></label>
       <input type="range" id="hue" min="0" max="359" step="1" value="0">
+      <label class="label" for="sat"><span data-i="sat">饱和度</span><output id="satOut">100%</output></label>
+      <input type="range" id="sat" min="0.4" max="1.9" step="0.1" value="1">
+      <label class="label" for="light"><span data-i="light">明暗</span><output id="lightOut">0</output></label>
+      <input type="range" id="light" min="-0.16" max="0.14" step="0.02" value="0">
     </div>
     <div class="group">
       <div class="label"><span data-i="avatar">头像预览</span></div>
@@ -92,7 +84,8 @@ import '../styles/site.css';
       </div>
     </div>
     <div class="group">
-      <div class="label"><span data-i="scene">画面 · 海与水</span><output id="sceneOut">1 / 9</output></div>
+      <div class="label"><span id="sceneLabel">画面</span><output id="sceneOut">1 / 9</output></div>
+      <div class="cat-tabs" id="catTabs" role="group" aria-label="分类"></div>
       <div class="scenes" id="scenes"></div>
     </div>
     <div class="group">
@@ -178,7 +171,7 @@ import '../styles/site.css';
   <section class="sec" aria-labelledby="catsTitle">
     <div class="sec-head">
       <h2 id="catsTitle" data-i="catsTitle">六类风景</h2>
-      <p data-i="catsNote">36 个画面，同一种画风。按住卡片看它动起来。</p>
+      <p id="catsNote">按住卡片看它动起来。</p>
     </div>
     <div class="cats" id="catGrid"></div>
   </section>

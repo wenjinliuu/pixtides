@@ -3,7 +3,7 @@
 //
 // 格式 v1：
 //   SH-7KQ9-ZT2M            没改参数（10 位）
-//   SH-7KQ9-ZT2M-3F0Q       改过参数：最后一段 = 14 位"改了哪些"的标记 + 各参数的值，按 5 位一个字符写出
+//   SH-7KQ9-ZT2M-3F0Q       改过参数：最后一段 = "改了哪些"的标记（每个参数一位） + 各参数的值，按 5 位一个字符写出
 // 以后格式升级时在最前面加版本字符；不带版本字符的编号永远按 v1 解析，老链接还原原样。
 
 import { SEED_SPACE } from './rng';
@@ -43,6 +43,8 @@ export interface Recipe {
   ratio: RatioId;
   variant: Variant;
   hue: number;
+  sat: number;
+  light: number;
   invert: boolean;
   angle: number | null;
   amp: number | null;
@@ -56,7 +58,7 @@ export interface Recipe {
 }
 
 export const RECIPE_DEFAULTS: Omit<Recipe, 'scene' | 'seed'> = {
-  grid: 32, ratio: '1x1', variant: 'day', hue: 0, invert: false, angle: null, amp: null, terrace: 1,
+  grid: 32, ratio: '1x1', variant: 'day', hue: 0, sat: 1, light: 0, invert: false, angle: null, amp: null, terrace: 1,
   bands: null, dots: null, dotMax: 5, pair: 0.22, silhouette: true, silSeed: 0,
 };
 
@@ -64,7 +66,7 @@ export const RECIPE_DEFAULTS: Omit<Recipe, 'scene' | 'seed'> = {
 export function recipeOptions(r: Recipe): Partial<SimOptions> {
   const ratio = RATIOS.find((x) => x.id === r.ratio)!.r;
   return {
-    seed: r.seed, grid: r.grid, ratio: [ratio[0], ratio[1]], variant: r.variant, hue: r.hue, invert: r.invert, angle: r.angle,
+    seed: r.seed, grid: r.grid, ratio: [ratio[0], ratio[1]], variant: r.variant, hue: r.hue, sat: r.sat, light: r.light, invert: r.invert, angle: r.angle,
     amp: r.amp, terrace: r.terrace, bands: r.bands, dots: r.dots, dotMax: r.dotMax, pair: r.pair, silhouette: r.silhouette, silSeed: r.silSeed,
   };
 }
@@ -87,7 +89,11 @@ const FIELDS: Field[] = [
   { key: 'pair', bits: 5, enc: (v: number) => Math.round(v * 50), dec: (n) => n / 50 }, // 0–0.6，步长 0.02
   { key: 'silhouette', bits: 0, enc: () => 0, dec: () => false },
   { key: 'silSeed', bits: 4, enc: (v: number) => Math.min(15, v), dec: (n) => n },
+  { key: 'sat', bits: 4, ...tenths(4) }, // 0.4–1.9，步长 0.1
+  { key: 'light', bits: 4, enc: (v: number) => Math.round(v * 50) + 8, dec: (n) => (n - 8) / 50 }, // -0.16–+0.14，步长 0.02
 ];
+/** v1 参数段只有前 14 个参数；用到之后加的参数时，参数段以 U 开头（U 不在编号字母表里），标记位覆盖全部参数 */
+const V1_FIELDS = 14;
 
 /** 显示用：大写、分组，例如 SH-7KQ9-ZT2M 或 SH-7KQ9-ZT2M-3F0Q */
 export function encodeRecipe(r: Recipe): string {
@@ -103,9 +109,10 @@ export function encodeRecipe(r: Recipe): string {
     if (f.bits) bits += n.toString(2).padStart(f.bits, '0');
   });
   if (!mask) return code;
-  bits = mask.toString(2).padStart(FIELDS.length, '0') + bits;
+  const ext = mask >>> V1_FIELDS !== 0;
+  bits = mask.toString(2).padStart(ext ? FIELDS.length : V1_FIELDS, '0') + bits;
   bits = bits.padEnd(Math.ceil(bits.length / 5) * 5, '0');
-  let tail = '';
+  let tail = ext ? 'U' : '';
   for (let i = 0; i < bits.length; i += 5) tail += B32[parseInt(bits.slice(i, i + 5), 2)];
   return code + '-' + tail;
 }
@@ -123,17 +130,19 @@ export function parseRecipe(str: string, scenes: readonly Scene[]): Recipe | nul
   const raw = all.slice(0, 2) + all.slice(2).replace(/O/g, '0').replace(/[IL]/g, '1');
   if (!scene) return null;
   const body = raw.slice(2, 10), tail = raw.slice(10);
-  if (!body || /[^0-9A-HJKMNP-TV-Z]/.test(raw.slice(2))) return null;
+  const ext = tail[0] === 'U';
+  if (!body || /[^0-9A-HJKMNP-TV-Z]/.test(body + (ext ? tail.slice(1) : tail))) return null;
   let seed = 0;
   for (const ch of body) seed = seed * 32 + B32.indexOf(ch);
   if (seed >= SEED_SPACE) return null;
   const r: Recipe = { scene, seed, ...RECIPE_DEFAULTS };
   if (!tail) return r;
   if (body.length < 8) return null;
-  const bits = Array.from(tail, (ch) => B32.indexOf(ch).toString(2).padStart(5, '0')).join('');
-  const mask = parseInt(bits.slice(0, FIELDS.length), 2);
-  let pos = FIELDS.length;
-  for (let i = 0; i < FIELDS.length; i++) {
+  const nf = ext ? FIELDS.length : V1_FIELDS;
+  const bits = Array.from(ext ? tail.slice(1) : tail, (ch) => B32.indexOf(ch).toString(2).padStart(5, '0')).join('');
+  const mask = parseInt(bits.slice(0, nf), 2);
+  let pos = nf;
+  for (let i = 0; i < nf; i++) {
     if (!(mask & (1 << i))) continue;
     const f = FIELDS[i];
     if (pos + f.bits > bits.length) return null;
