@@ -128,6 +128,10 @@ describe('编号', () => {
       expect(parseCode(code.toLowerCase().replace(/1/g, 'l').replace(/0/g, 'o'), SCENES)?.seed).toBe(seed);
     }
     expect(parseCode('ZZ-1234-5678', SCENES)).toBeNull();
+    // 场景码本身含 O / I / L 时不能被纠错替换掉（冰湖 IL）
+    for (const sc of SCENES) expect(parseCode(shortCode(sc, 123456789).toLowerCase(), SCENES)?.scene.id).toBe(sc.id);
+    expect(parseCode('IL-003N-QK8N', SCENES)?.scene).toBe(byId.icelake);
+    expect(parseCode('il-oo3n-qk8n', SCENES)).toEqual(parseCode('IL-003N-QK8N', SCENES));
     expect(parseCode('SH-1234', SCENES)?.seed).toBe(parseInt('1234', 32)); // 旧的短种子仍可解析
     expect(parseCode('SH-UUUU-UUUU', SCENES)).toBeNull();
   });
