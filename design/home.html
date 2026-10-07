@@ -241,6 +241,7 @@ html[lang=en] #toast{font-family:var(--f-body);font-size:13px}
 <section class="hero" id="hero" aria-label="今日一张">
   <canvas id="sea" aria-hidden="true"></canvas>
   <div class="hero-top">
+    <button class="chip" id="grain" type="button">粒度 · 中</button>
     <button class="chip" id="theme" type="button">AUTO</button>
     <button class="chip" id="lang" type="button" style="min-width:48px">EN</button>
   </div>
@@ -477,6 +478,7 @@ html[lang=en] #toast{font-family:var(--f-body);font-size:13px}
     zh: {
       tag: '每一张都由代码现场画出', sub: '选一个画面，掷骰子，调到喜欢，下载当头像或壁纸。', editThis: '调这张', random: '随机一张',
       auto: '自动', dawn: '晨', day: '昼', dusk: '昏', night: '夜', timeAuto: '自动', timeDebug: '调试',
+      grainChip: '粒度 · {g}', grain_coarse: '粗', grain_medium: '中', grain_fine: '细', grain_finest: '极细',
       sync: '此刻全世界看到同一片浪', dayPlate: '今日一张 · 第 {n} 张 · {name}', rollPlate: '回看 {d} · 第 {n} 张 · {name}', backToday: '回到今天',
       calendar: '日历', calTitle: '今日一张 · 日历', calNote: '每天打开就收集当天那张。点任意一天，第一屏换成那天的海，浪仍和全世界同步。',
       mineScene: '画面', autoScene: '自动', palFollow: '跟随首页', fromDay: '{d} 的今日一张', swipe: '← 左右滑动换画面 →', dice: '换一张', scene: '画面 · 海与水', grain: '像素粒度', ratio: '画面比例',
@@ -503,6 +505,7 @@ html[lang=en] #toast{font-family:var(--f-body);font-size:13px}
     en: {
       tag: 'Every picture is drawn live, in code', sub: 'Pick a scene, roll the dice, tune it, and save it as an avatar or wallpaper.', editThis: 'Edit this one', random: 'Surprise me',
       auto: 'Auto', dawn: 'Dawn', day: 'Day', dusk: 'Dusk', night: 'Night', timeAuto: 'auto', timeDebug: 'debug',
+      grainChip: 'Grain · {g}', grain_coarse: 'Coarse', grain_medium: 'Medium', grain_fine: 'Fine', grain_finest: 'Finest',
       sync: 'Everyone sees these same waves right now', dayPlate: 'Picture of the day · No. {n} · {name}', rollPlate: 'Looking back {d} · No. {n} · {name}', backToday: 'Back to today',
       calendar: 'Calendar', calTitle: 'Picture of the day · Calendar', calNote: 'Open the site to collect that day’s picture. Tap any day to show its sea up top; the waves stay in sync with everyone.',
       mineScene: 'Scene', autoScene: 'Auto', palFollow: 'Following home', fromDay: 'picture of {d}', swipe: '← Swipe for another scene →', dice: 'Reroll', scene: 'Scene · Sea & Water', grain: 'Pixel grain', ratio: 'Aspect ratio',
@@ -568,10 +571,15 @@ html[lang=en] #toast{font-family:var(--f-body);font-size:13px}
   let todayKey = P.localDateKey(new Date());
   let heroDay = todayKey, heroPick = P.dayPick(todayKey, SEA), heroSim = null;
   let timeMode = 'auto', heroTime = P.timeOfDay(), heroVisible = true;
+  // 第一屏粒度：按一个主格在屏幕上约多少 CSS 像素来算格数，记在本机
+  const GRAINS = [{ id: 'coarse', px: 22 }, { id: 'medium', px: 14 }, { id: 'fine', px: 10 }, { id: 'finest', px: 7 }];
+  let heroGrain = store.get('pt-grain', 'medium');
+  if (!GRAINS.some((g) => g.id === heroGrain)) heroGrain = 'medium';
   function buildHero(transition) {
     heroPick = P.dayPick(heroDay, SEA);
     const w = hero.clientWidth, h = hero.clientHeight;
-    const G = Math.max(14, Math.min(40, Math.round(Math.min(w, h) / 17)));
+    const px = GRAINS.find((g) => g.id === heroGrain).px;
+    const G = Math.max(12, Math.min(96, Math.round(Math.min(w, h) / px)));
     if (transition && heroSim && !reduce.matches) heroView.dissolve(transition);
     heroSim = P.create(heroPick.scene, { grid: G, ratio: [w, h], seed: heroPick.seed, time: P.globalTime(), variant: heroTime });
     heroView.attach(heroSim, Math.round(w * dpr()), Math.round(h * dpr()));
@@ -615,6 +623,14 @@ html[lang=en] #toast{font-family:var(--f-body);font-size:13px}
     updateTimeLabel();
   });
   $('backToday').addEventListener('click', () => setHeroDay(todayKey));
+  function syncGrainChip() { $('grain').textContent = t('grainChip', { g: t('grain_' + heroGrain) }); }
+  $('grain').addEventListener('click', () => {
+    const i = GRAINS.findIndex((g) => g.id === heroGrain);
+    heroGrain = GRAINS[(i + 1) % GRAINS.length].id;
+    store.set('pt-grain', heroGrain);
+    syncGrainChip();
+    buildHero();
+  });
   setInterval(() => {
     updateSyncPlate();
     if (timeMode === 'auto') setHeroTime(P.timeOfDay(), true);
@@ -1088,7 +1104,7 @@ html[lang=en] #toast{font-family:var(--f-body);font-size:13px}
     $('lang').textContent = t('lang');
     $('lang').setAttribute('aria-label', lang === 'zh' ? 'Switch to English' : '切换到中文');
     $('prev').setAttribute('aria-label', t('prev')); $('next').setAttribute('aria-label', t('next'));
-    syncThemeChip(); updateTimeLabel(); updateSyncPlate();
+    syncThemeChip(); syncGrainChip(); updateTimeLabel(); updateSyncPlate();
     buildCats();
     if (sim) syncUi();
     updateDayPlate();
