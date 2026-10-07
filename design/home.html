@@ -379,7 +379,7 @@ html[lang=en] #toast{font-family:var(--f-body);font-size:13px}
     <div class="card split">
       <canvas class="pic" id="mineCv" style="aspect-ratio:1/1" aria-label="我的海"></canvas>
       <div class="info">
-        <div class="label"><span data-i="mineScene">画面</span><output id="mineSceneOut">自动</output></div>
+        <div class="label"><span data-i="mineScene">画面</span><output id="mineSceneOut">浅滩</output></div>
         <div class="scenes mine-scenes" id="mineScenes"></div>
         <div class="mine-tabs" id="mineTabs">
           <button class="chip zhc" type="button" data-v="name" aria-pressed="true" data-i="byName">名字</button>
@@ -505,7 +505,7 @@ html[lang=en] #toast{font-family:var(--f-body);font-size:13px}
       export: '导出 PNG / SVG', exportHint: '画布静止时显示的就是导出的画面，与编号一一对应；「动起来」只是预览浪的样子。', exTitle: '导出', res: '分辨率', shape: '形状', safe: '安全区参考线',
       format: '格式', download: '下载', longPress: '长按图片保存到相册。', close: '关闭',
       todayTitle: '今日一张', todayNote: '按你所在地的日期，同一天全世界看到同一张。每天来看一眼，日历上就多一格。', openEditor: '在编辑器里打开',
-      mineTitle: '我的海', mineNote: '先选一个画面（或交给「自动」），再输入名字、一句话或生日。同样的输入永远得到同一张，换台手机也一样。', byName: '名字', byBirthday: '生日', byCombo: '名字 + 生日', withYear: '含年份', make: '生成', originIs: '来自 ',
+      mineTitle: '我的海', mineNote: '先选一个画面，再输入名字、一句话或生日。文字只决定底座构图，同样的输入永远是同一个构图，换台手机也一样。', byName: '名字', byBirthday: '生日', byCombo: '名字 + 生日', withYear: '含年份', make: '生成', originIs: '来自 ',
       catsTitle: '六类风景', catsNote: '36 个画面，同一种画风。按住卡片看它动起来。', foot: '代码 MIT · 生成的图归你，可商用 · 字体 Fusion Pixel / Silkscreen（OFL）',
       soon: 'V1 上线', radial: '径向', cells: '格', lang: 'EN', prev: '上一个画面', next: '下一个画面',
       themeAuto: '自动', themeDark: '深色', themeLight: '浅色',
@@ -516,8 +516,8 @@ html[lang=en] #toast{font-family:var(--f-body);font-size:13px}
       originFrom: '改自 ', fromHero: '此刻的海', fromToday: '今日一张', fromName: '「{t}」的海', fromBirthday: '{d} 的海', fromCode: '编号',
       no: '第 {n} 张', collected: '已收集 {n} 天', wd: ['一', '二', '三', '四', '五', '六', '日'],
       mineName: '「{t}」的海', mineDay: '{d} 的海', mineMD: '每年 {d} 生日的海', mineCombo: '「{t}」+ {d} 的海',
-      mineMDExplain: '不含年份时只按月日：每年 {d} 生日的人共享这一张。', mineComboExplain: '名字规范化为「{n}」，和日期 {d} 一起算种子，重名的人也能各有一张。', mineNameExplain: '规范化后是「{n}」：全角转半角、英文转小写、去掉空格和分隔符；再算 SHA-256，前 4 字节做种子，后 4 字节在「自动」时挑画面。',
-      mineDayExplain: '生日用的就是那一天的「今日一张」：{d} 是第 {n} 张。选了画面时种子不变，只换画面。', pairSaved: '已导出一对', heroCode: '今天的海',
+      mineMDExplain: '不含年份时只按月日：每年 {d} 生日的人共享这一张。', mineComboExplain: '名字规范化为「{n}」，和日期 {d} 一起算种子，重名的人也能各有一张。', mineNameExplain: '规范化后是「{n}」：全角转半角、英文转小写、去掉空格和分隔符；再算 SHA-256，取前 4 字节做构图种子。名字只决定构图，画面、配色、粒度都由你选。',
+      mineDayExplain: '含年份时用那一天「今日一张」的构图：{d} 是第 {n} 张，那天排到的画面是「{s}」，选同一个画面就是那天的那张。', pairSaved: '已导出一对', heroCode: '今天的海',
     },
     en: {
       tag: 'Every picture is drawn live, in code', sub: 'Pick a scene, roll the dice, tune it, and save it as an avatar or wallpaper.', editThis: 'Edit this one', random: 'Surprise me',
@@ -533,7 +533,7 @@ html[lang=en] #toast{font-family:var(--f-body);font-size:13px}
       export: 'Export PNG / SVG', exportHint: 'The still canvas is exactly what you export and what the code stands for; “Animate” only previews the waves.', exTitle: 'Export', res: 'Resolution', shape: 'Shape', safe: 'Safe-area guide',
       format: 'Format', download: 'Download', longPress: 'Press and hold the image to save it.', close: 'Close',
       todayTitle: 'Picture of the day', todayNote: 'By your local date, everyone sees the same picture on the same day. Visit daily to fill your calendar.', openEditor: 'Open in editor',
-      mineTitle: 'Your sea', mineNote: 'Pick a scene (or leave it on Auto), then type a name or phrase, or pick a birthday. The same input always gives the same picture, on any device.', byName: 'Name', byBirthday: 'Birthday', byCombo: 'Name + birthday', withYear: 'Include year', make: 'Make', originIs: 'From ',
+      mineTitle: 'Your sea', mineNote: 'Pick a scene, then type a name or phrase, or pick a birthday. The text sets only the base composition; the same input always gives the same composition, on any device.', byName: 'Name', byBirthday: 'Birthday', byCombo: 'Name + birthday', withYear: 'Include year', make: 'Make', originIs: 'From ',
       catsTitle: 'Six worlds', catsNote: '36 scenes, one style. Press and hold a card to see it move.', foot: 'Code MIT · Your pictures are yours, commercial use OK · Fonts Fusion Pixel / Silkscreen (OFL)',
       soon: 'In V1', radial: 'radial', cells: 'cells', lang: '中', prev: 'Previous scene', next: 'Next scene',
       themeAuto: 'Auto', themeDark: 'Dark', themeLight: 'Light',
@@ -544,8 +544,8 @@ html[lang=en] #toast{font-family:var(--f-body);font-size:13px}
       originFrom: 'Remixed from ', fromHero: 'today’s sea', fromToday: 'picture of the day', fromName: '“{t}”', fromBirthday: '{d}', fromCode: 'code',
       no: 'No. {n}', collected: '{n} days collected', wd: ['M', 'T', 'W', 'T', 'F', 'S', 'S'],
       mineName: '“{t}”', mineDay: 'The sea of {d}', mineMD: 'Every {d} birthday', mineCombo: '“{t}” + {d}',
-      mineMDExplain: 'Without the year, only month and day count: everyone born on {d} shares this one.', mineComboExplain: 'The name normalizes to “{n}” and is hashed together with {d}, so people with the same name still get their own.', mineNameExplain: 'Normalized to “{n}”: full-width to half-width, lowercase, spaces and separators removed. Then SHA-256: the first 4 bytes are the seed, the next 4 pick the scene when set to Auto.',
-      mineDayExplain: 'A birthday is that date’s picture of the day: {d} is No. {n}. Picking a scene keeps the seed and swaps the scene.', pairSaved: 'Pair exported', heroCode: 'Today’s sea',
+      mineMDExplain: 'Without the year, only month and day count: everyone born on {d} shares this one.', mineComboExplain: 'The name normalizes to “{n}” and is hashed together with {d}, so people with the same name still get their own.', mineNameExplain: 'Normalized to “{n}”: full-width to half-width, lowercase, spaces and separators removed. Then SHA-256; the first 4 bytes become the composition seed. The name sets only the composition; scene, colors and grain are yours to choose.',
+      mineDayExplain: 'With the year, this uses that date’s picture-of-the-day composition: {d} is No. {n}, and its scene was {s}. Pick the same scene to get that exact picture.', pairSaved: 'Pair exported', heroCode: 'Today’s sea',
     },
   };
   let lang = store.get('pt-lang', navigator.language.startsWith('zh') ? 'zh' : 'en');
@@ -987,14 +987,9 @@ html[lang=en] #toast{font-family:var(--f-body);font-size:13px}
   document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeCal(); });
   // ================= 我的海：选画面 + 名字 / 生日 → 种子 =================
   const mineView = new P.View($('mineCv'));
-  let mineMode = 'name', mineScene = null, mineResult = null;
+  let mineMode = 'name', mineScene = SEA[0], mineResult = null;
   (function buildMineScenes() {
     const box = $('mineScenes');
-    const auto = document.createElement('button');
-    auto.type = 'button'; auto.className = 'scene'; auto.dataset.v = 'auto';
-    const a = document.createElement('div'); a.className = 'auto'; a.dataset.i = 'autoScene';
-    auto.append(a, document.createElement('span'));
-    box.append(auto);
     SEA.forEach((sc) => {
       const b = document.createElement('button');
       b.type = 'button'; b.className = 'scene'; b.dataset.v = sc.id;
@@ -1006,7 +1001,7 @@ html[lang=en] #toast{font-family:var(--f-body);font-size:13px}
     box.addEventListener('click', (e) => {
       const b = e.target.closest('.scene');
       if (!b) return;
-      mineScene = b.dataset.v === 'auto' ? null : P.byId[b.dataset.v];
+      mineScene = P.byId[b.dataset.v];
       makeMine();
     });
   })();
@@ -1017,15 +1012,15 @@ html[lang=en] #toast{font-family:var(--f-body);font-size:13px}
     const key = withYear ? P.normalizeDate($('mineDate').value) || '2000-01-01' : `2000-${$('mineMonth').value}-${$('mineDay').value}`;
     let r, label, explain;
     if (mineMode === 'name') {
-      r = P.namePick(typed, SEA, mineScene);
+      r = P.namePick(typed, mineScene);
       label = t('mineName', { t: typed });
       explain = t('mineNameExplain', { n: r.text });
     } else if (mineMode === 'birthday') {
       r = P.birthdayPick(key, SEA, withYear, mineScene);
       label = t(withYear ? 'mineDay' : 'mineMD', { d: r.date });
-      explain = withYear ? t('mineDayExplain', { d: key, n: r.no }) : t('mineMDExplain', { d: r.date });
+      explain = withYear ? t('mineDayExplain', { d: key, n: r.no, s: r.daySceneOfDate.name[lang] }) : t('mineMDExplain', { d: r.date });
     } else {
-      r = P.comboPick(typed, key, SEA, withYear, mineScene);
+      r = P.comboPick(typed, key, withYear, mineScene);
       label = t('mineCombo', { t: typed, d: r.date });
       explain = t('mineComboExplain', { n: r.text, d: r.date });
     }
@@ -1037,9 +1032,9 @@ html[lang=en] #toast{font-family:var(--f-body);font-size:13px}
     mineView.attach(s, w, w);
     mineView.render();
     $('mineCode').textContent = mineResult.scene.name[lang] + ' · ' + P.shortCode(mineResult.scene, mineResult.seed) + (s.rare ? ' · ' + t('rare') : '');
-    press($('mineScenes'), mineScene ? mineScene.id : 'auto');
-    $('mineSceneOut').textContent = mineScene ? mineScene.name[lang] : t('autoScene');
-    document.querySelectorAll('#mineScenes .scene span').forEach((sp, i) => { sp.textContent = i ? SEA[i - 1].name[lang] : ''; });
+    press($('mineScenes'), mineScene.id);
+    $('mineSceneOut').textContent = mineScene.name[lang];
+    document.querySelectorAll('#mineScenes .scene span').forEach((sp, i) => { sp.textContent = SEA[i].name[lang]; });
   }
   $('mineTabs').addEventListener('click', (e) => {
     const b = e.target.closest('[data-v]');
