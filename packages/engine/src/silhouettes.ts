@@ -114,10 +114,15 @@ function mountains(ctx: SilCtx, r: Rng, scene: Scene, tone: (f: number | undefin
       y[x] = prev = v;
     }
     let snow: Int16Array | null = null;
-    if (spec.snow != null || spec.snowColor) { // 积雪：只在高处，雪线以上的山脊往下几格
+    if (spec.snow != null || spec.snowColor) { // 积雪：雪线以上整片是雪，雪线下沿走锯齿（顺着沟往下多淌一点）
       snow = new Int16Array(W);
-      const line = peakTop + (floor - peakTop) * (0.35 + r() * 0.15);
-      for (let i = 0; i < W; i++) snow[i] = y[i] < line - u ? Math.min(Math.round((line - y[i]) * 0.7) + 2 * u, 10 * u) : 0; // 刚冒过雪线的小尖不积雪，免得出现零星白点
+      const line = peakTop + (floor - peakTop) * (0.42 + r() * 0.14);
+      let jag = 0;
+      for (let i = 0; i < W; i++) {
+        if (i % u === 0 && r() < 0.5) jag = Math.max(-3 * u, Math.min(3 * u, jag + (r() < 0.5 ? -u : u)));
+        const bottom = Math.round((line + jag) / u) * u;
+        snow[i] = Math.max(0, bottom - y[i]);
+      }
     }
     ridges.push({ y, col: ctx.ridgeIdx?.[li] ?? tone(spec.tones[li], 0), snow, snowCol: ctx.snowIdx >= 0 ? ctx.snowIdx : tone(spec.snow, 1) });
   }
@@ -133,34 +138,70 @@ function mountains(ctx: SilCtx, r: Rng, scene: Scene, tone: (f: number | undefin
   };
 }
 
-/** 树：一排针叶或阔叶树，树干在下、树冠在上，高矮不一 */
+/**
+ * 树：阔叶树前后两排，后排小一点、颜色往背景靠（有景深）；松树一排，高矮错落。
+ * 松树 = 三四层叠起的梯形，每层下沿最宽、往上收；阔叶树 = 三五个大小不一的圆团挤在一起的树冠。
+ * 所有边缘按细部单位取整，和画面的像素密度一致。雪景里松树每层顶上压一道雪
+ */
 function trees(ctx: SilCtx, r: Rng, scene: Scene, col: number): SilLayer {
-  const { W, H, S } = ctx;
+  const { W, H, S, L, lum, layer } = ctx;
   const kind = scene.treeKind ?? (r() < 0.5 ? 'pine' : 'round');
   const base = Math.round(H * (scene.groundY ?? 1));
   const u = detailUnit(S);
-  const shapes: { x: number; w: number; h: number; trunk: number }[] = [];
-  let x = ri(r, -2, 4);
-  while (x < W) {
-    const h = even(S * (0.14 + r() * 0.16));
-    const w = even(kind === 'pine' ? h * (0.45 + r() * 0.15) : h * (0.6 + r() * 0.25));
-    shapes.push({ x, w, h, trunk: Math.max(even(h * 0.18), 2 * u) });
-    x += w + (r() < 0.3 ? 0 : ri(r, 0, 3) * 2) - (r() < 0.4 ? 2 : 0);
+  const q = (v: number) => Math.max(u, Math.round(v / u) * u);
+  interface Tree { x: number; w: number; h: number; trunk: number; lobes: { dx: number; dy: number; r: number }[]; tiers: number; back: boolean }
+  const rows: Tree[] = [];
+  for (const back of kind === 'pine' ? [false] : [true, false]) { // 松树缩小后台阶太粗、像竖条，只画一排
+    let x = ri(r, -4, 4) * u;
+    const k = back ? 0.7 : 1;
+    while (x < W) {
+      const h = q(S * (0.16 + r() * 0.16) * k);
+      const w = q(kind === 'pine' ? h * (0.5 + r() * 0.12) : h * (0.7 + r() * 0.25));
+      const lobes = kind === 'round' ? Array.from({ length: 3 + Math.floor(r() * 3) }, () => ({
+        dx: (r() - 0.5) * w * 0.55, dy: (r() - 0.5) * h * 0.25, r: w * (0.26 + r() * 0.14),
+      })) : [];
+      rows.push({ x, w, h, trunk: q(h * (kind === 'pine' ? 0.1 : 0.22)), lobes, tiers: 3 + (r() < 0.5 ? 1 : 0), back });
+      x += Math.round(w * (back ? 0.75 + r() * 0.5 : 0.85 + r() * 0.6) / u) * u;
+    }
   }
+  // 后排颜色：在剪影色和地面背景色之间取一阶（自带颜色时没有亮度可比，就用同一色）
+  const near = (target: number) => { let best = 0; for (let i = 1; i < L; i++) if (Math.abs(lum[i] - target) < Math.abs(lum[best] - target)) best = i; return best; };
+  const backCol = (): number => {
+    if (col >= L) return col;
+    const bg = layer[Math.min(H - 1, Math.max(0, base - Math.round(S * 0.3))) * W + (W >> 1)]; // 树梢那一带的天色：越远越接近它
+    return near(lum[col] + (lum[bg] - lum[col]) * 0.4);
+  };
+  const snowCol = scene.treeSnow ? (ctx.snowIdx >= 0 ? ctx.snowIdx : lum.indexOf(Math.max(...lum))) : -1;
   return {
     draw(cells) {
-      for (const s of shapes) {
-        const cx = s.x + s.w / 2, crownBottom = base - s.trunk;
-        rect(ctx, cells, Math.round(cx) - u, crownBottom, 2 * u, s.trunk, col);
-        const ch = s.h - s.trunk;
-        for (let yy = 0; yy < ch; yy++) {
-          const f = (yy + 1) / ch; // 树顶 → 树冠底
-          let half: number;
-          if (kind === 'pine') { // 两三层叠起来的三角：每层下沿比上一层宽
-            const tiers = ch > 16 ? 3 : 2, tf = (f * tiers) % 1 || 1, ti = Math.min(tiers - 1, Math.floor(f * tiers - 1e-6));
-            half = Math.max(1, Math.round(((0.35 + 0.65 * ((ti + tf) / tiers)) * s.w) / 2));
-          } else half = Math.max(1, Math.round((Math.sqrt(Math.max(0, 1 - (2 * f - 1) ** 2)) * s.w) / 2));
-          rect(ctx, cells, Math.round(cx - half), crownBottom - ch + yy, half * 2, 1, col);
+      const bc = backCol();
+      for (const tr of rows) {
+        const c = tr.back ? bc : col, ground = tr.back ? base - q(S * 0.03) : base;
+        const cx = tr.x + tr.w / 2, top = ground - tr.h, crownBottom = ground - tr.trunk;
+        rect(ctx, cells, Math.round(cx - u), crownBottom - u, 2 * u, tr.trunk + u, c);
+        if (kind === 'pine') {
+          // 一整个尖三角，每隔一段往里收一格做出枝层的锯齿；雪只压在树顶和每层枝尖上
+          const ch = crownBottom - top, seg = Math.max(2 * u, Math.round(ch / (tr.tiers + 1) / u) * u);
+          for (let y = top; y < crownBottom; y++) {
+            const f = (y - top + 1) / ch, k = (y - top) % seg;
+            const notch = k < u && y - top >= seg; // 每层的第一行收进去
+            const half = Math.max(u, q(f * (tr.w / 2)) - (notch ? u : 0));
+            rect(ctx, cells, Math.round(cx - half), y, half * 2, 1, c);
+            if (snowCol >= 0 && !tr.back) {
+              if (y - top < u * 2) rect(ctx, cells, Math.round(cx - half), y, half * 2, 1, snowCol); // 树顶
+              else if (k === seg - 1) { rect(ctx, cells, Math.round(cx - half), y, u, 1, snowCol); rect(ctx, cells, Math.round(cx + half - u), y, u, 1, snowCol); } // 枝尖
+            }
+          }
+        } else {
+          for (const lb of tr.lobes) {
+            const ox = cx + lb.dx, oy = top + tr.h * 0.38 + lb.dy, R = lb.r;
+            for (let y = Math.floor(oy - R); y < Math.ceil(oy + R); y++) {
+              const half = Math.sqrt(Math.max(0, R * R - (y + 0.5 - oy) ** 2));
+              if (half < u / 2) continue;
+              const hw = q(half);
+              rect(ctx, cells, Math.round(ox - hw), Math.min(y, crownBottom), hw * 2, 1, c);
+            }
+          }
         }
       }
     },

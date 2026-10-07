@@ -217,7 +217,9 @@ export const SCENES: readonly Scene[] = [
   },
   {
     id: 'lavender', code: 'xc', cat: 'plant', name: { zh: '薰衣草', en: 'Lavender' }, layout: 'bands', angle: 90, steps: 7,
-    anchors: ['#C9B8FF', '#8A63D8', '#4A3070', '#2E5A2E'], tint: 0.6, amp: 1.2, run: [1, 3], patch: 1, dots: 1.4, look: { zh: '紫野', en: 'Purple Field' },
+    anchors: ['#C9B8FF', '#8A63D8', '#4A3070', '#3A7A34'], tint: 0.6, amp: 1.2, run: [1, 3], patch: 1, dots: 1.4, look: { zh: '紫野', en: 'Purple Field' },
+    presets: ['day', 'dawn'],
+    times: { dawn: { name: { zh: '晴紫', en: 'Bright Bloom' }, a: ['#8FD4FF', '#C8A8FF', '#8A4FE8', '#5A2FB0', '#3FA83A', '#1E7A2A'], glints: ['#FFFFFF', '#FFE8FF'] } },
   },
   {
     id: 'tundra', code: 'tn', cat: 'plant', name: { zh: '苔原', en: 'Tundra' }, tint: 0.5, layout: 'radial', angle: 0, steps: 7,
@@ -238,7 +240,7 @@ export const SCENES: readonly Scene[] = [
     id: 'snownight', code: 'sn', cat: 'weather', name: { zh: '雪夜松林', en: 'Snowy Pines' }, layout: 'bands', angle: 90, steps: 6,
     anchors: ['#0B1640', '#3A5DA8', '#FFFFFF'], amp: 0.7, run: [3, 8], patch: 0.6, dots: 0.6,
     glow: ['#FFFFFF', '#C9D8F5'], glowDensity: 40, glowMotion: 'fall',
-    silhouette: 'trees', treeKind: 'pine', silTone: 0, groundY: 0.92, look: { zh: '雪夜', en: 'Snow Night' },
+    silhouette: 'trees', treeKind: 'pine', treeSnow: true, silTone: 0, groundY: 0.94, look: { zh: '雪夜', en: 'Snow Night' },
   },
   {
     id: 'snowfield', code: 'xy', cat: 'weather', name: { zh: '雪原', en: 'Snowfield' }, layout: 'bands', angle: 90, steps: 6,
@@ -276,8 +278,33 @@ export const SCENES: readonly Scene[] = [
   {
     id: 'mintcream', code: 'mt', cat: 'mood', name: { zh: '薄荷奶油', en: 'Mint Cream' }, tint: 0.5, layout: 'bands', angle: 90, steps: 6,
     anchors: ['#FFF8E6', '#BFF2DC', '#4FC9A8'], amp: 0.9, run: [2, 6], patch: 1, dots: 0.8,
-    look: { zh: '薄荷', en: 'Mint' }, presets: ['day', 'dawn'],
-    times: { dawn: { name: { zh: '蜜桃', en: 'Peach' }, a: ['#FFF6EC', '#FFD2C0', '#F08A7A'], glints: ['#FFFFFF'] } },
+    look: { zh: '薄荷', en: 'Mint' }, presets: ['day', 'dawn', 'dusk', 'night'],
+    times: {
+      dawn: { name: { zh: '蜜桃', en: 'Peach' }, a: ['#FFF6EC', '#FFD2C0', '#F08A7A'], glints: ['#FFFFFF'] },
+      dusk: { name: { zh: '香芋', en: 'Taro' }, a: ['#FFF6FF', '#E4D4FF', '#A88AE0'], glints: ['#FFFFFF'] },
+      night: { name: { zh: '柠檬', en: 'Lemon' }, a: ['#FFFFF2', '#FFF4B0', '#F2C84A'], glints: ['#FFFFFF'] },
+    },
+  },
+  // 奶油色系：低饱和、高明度，每个都配满 4 套
+  {
+    id: 'macaron', code: 'mk', cat: 'mood', name: { zh: '马卡龙', en: 'Macaron' }, tint: 0.5, layout: 'diagonal', angle: 135, steps: 6,
+    anchors: ['#FFF4F6', '#FFC8D8', '#F48AA8'], amp: 1, run: [2, 6], patch: 1, dots: 0.8,
+    look: { zh: '草莓', en: 'Strawberry' }, presets: ['day', 'dawn', 'dusk', 'night'],
+    times: {
+      dawn: { name: { zh: '蓝莓', en: 'Blueberry' }, a: ['#F4F8FF', '#C8DAFF', '#7A9AE8'], glints: ['#FFFFFF'] },
+      dusk: { name: { zh: '抹茶', en: 'Matcha' }, a: ['#F6FFF0', '#D4F0C0', '#8AC870'], glints: ['#FFFFFF'] },
+      night: { name: { zh: '焦糖', en: 'Caramel' }, a: ['#FFF8EE', '#F4D8B0', '#D09A5A'], glints: ['#FFFFFF'] },
+    },
+  },
+  {
+    id: 'cottoncandy', code: 'mh', cat: 'mood', name: { zh: '棉花糖', en: 'Cotton Candy' }, tint: 0.5, layout: 'radial', angle: 0, steps: 6,
+    anchors: ['#FFE8F4', '#E8E4FF', '#BFE4FF'], amp: 1, run: [1, 3], patch: 0.8, dots: 0.7,
+    look: { zh: '粉蓝', en: 'Pink Sky' }, presets: ['day', 'dawn', 'dusk', 'night'],
+    times: {
+      dawn: { name: { zh: '桃杏', en: 'Apricot' }, a: ['#FFF0E0', '#FFD6C8', '#FFB8B0'], glints: ['#FFFFFF'] },
+      dusk: { name: { zh: '青柠', en: 'Lime' }, a: ['#F4FFE8', '#DFFAD8', '#B8EED8'], glints: ['#FFFFFF'] },
+      night: { name: { zh: '薰衣', en: 'Lilac' }, a: ['#F8F0FF', '#E8D8FF', '#C8B0F0'], glints: ['#FFFFFF'] },
+    },
   },
 ];
 
@@ -289,7 +316,7 @@ export const CATEGORIES: readonly Category[] = [
   { id: 'land', name: { zh: '大地与山', en: 'Land & Peaks' }, count: 5, cover: 'snowpeak', live: true },
   { id: 'plant', name: { zh: '植物与季节', en: 'Plants & Seasons' }, count: 7, cover: 'autumn', live: true },
   { id: 'weather', name: { zh: '天气与时刻', en: 'Weather & Hours' }, count: 6, cover: 'snownight', live: true },
-  { id: 'mood', name: { zh: '心情', en: 'Moods' }, count: 3, cover: 'neon', live: true },
+  { id: 'mood', name: { zh: '心情', en: 'Moods' }, count: 5, cover: 'neon', live: true },
 ];
 
 export const byId: Readonly<Record<string, Scene>> = Object.fromEntries(SCENES.map((s) => [s.id, s]));

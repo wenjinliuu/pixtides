@@ -50,6 +50,8 @@ export interface Scene {
   /** 灯塔条纹颜色 */
   stripeTone?: number;
   treeKind?: 'pine' | 'round';
+  /** 松树每层顶上压一道雪（雪景） */
+  treeSnow?: boolean;
   /** 树和灯塔站在哪条线上（占画面高度，1 = 底边） */
   groundY?: number;
   /** 帆船所在的水平线 */
