@@ -64,6 +64,12 @@ input[type=range]::-moz-range-thumb{width:16px;height:16px;background:var(--acce
 input[type=range]:disabled{opacity:.35}
 input[type=text],input[type=date]{width:100%;min-height:44px;padding:0 12px;border-radius:0;background:var(--raise);border:2px solid var(--line);font-size:16px}
 input[type=text]::placeholder{color:var(--muted)}
+/* iOS 的日期框有自带的最小宽度，会撑出卡片：去掉原生外观，宽度跟随容器 */
+input[type=date]{display:block;min-width:0;max-width:100%;-webkit-appearance:none;appearance:none;text-align:left;line-height:40px}
+input[type=date]::-webkit-date-and-time-value{text-align:left}
+select{width:100%;min-width:0;min-height:44px;padding:0 10px;border-radius:0;background:var(--raise);color:var(--fg);border:2px solid var(--line);font-size:16px;-webkit-appearance:none;appearance:none}
+.md-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;min-width:0}
+.mine-form{min-width:0}
 .switch{position:relative;display:inline-block;width:48px;height:28px;flex:none}
 .switch input{position:absolute;inset:0;opacity:0;margin:0;cursor:pointer}
 .switch span{position:absolute;inset:0;background:var(--bg);border:2px solid var(--line);pointer-events:none}
@@ -120,6 +126,8 @@ html[lang=en] .seg button{font-family:var(--f-pixel);font-size:12px}
 .swipe-hint{position:absolute;left:50%;bottom:8px;transform:translateX(-50%);white-space:nowrap;font-family:var(--f-zh);font-size:12px;color:var(--fg);background:var(--bg);padding:2px 8px;pointer-events:none}
 html[lang=en] .swipe-hint{font-family:var(--f-pixel)}
 .rare-tag{position:absolute;left:8px;top:8px}
+.play{position:absolute;right:8px;top:8px;min-height:32px;font-family:var(--f-zh);font-size:12px;background:var(--bg);color:var(--fg);border-color:var(--bg)}
+html[lang=en] .play{font-family:var(--f-pixel)}
 .namebar{display:flex;align-items:center;gap:8px;width:100%;max-width:720px;justify-self:center}
 .name{flex:1;min-width:0;display:grid;gap:2px;text-align:center}
 .name b{font-family:var(--f-zh);font-weight:400;font-size:24px;line-height:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -281,6 +289,7 @@ html[lang=en] #toast{font-family:var(--f-body);font-size:13px}
       <div class="canvas-box" id="box">
         <canvas id="view" aria-label="当前画面"></canvas>
         <span class="badge rare-tag" id="rareTag" hidden>稀有 · 鲸尾</span>
+        <button class="chip play" id="play" type="button">▶ 动起来</button>
         <span class="swipe-hint" id="swipeHint" data-i="swipe">← 左右滑动换画面 →</span>
       </div>
     </div>
@@ -350,7 +359,6 @@ html[lang=en] #toast{font-family:var(--f-body);font-size:13px}
           </span>
         </div>
         <div class="row"><span class="zh" data-i="invert">深浅反转</span><label class="switch"><input type="checkbox" id="invert" aria-label="深浅反转"><span></span></label></div>
-        <div class="row"><span class="zh" data-i="motion">画布动效</span><label class="switch"><input type="checkbox" id="motion" checked aria-label="画布动效"><span></span></label></div>
         <div class="row"><span class="zh" data-i="rareDebug">刷一张稀有的（调试）</span><button class="btn" id="findRare" type="button" style="min-height:36px">1/512</button></div>
       </div>
     </details>
@@ -381,6 +389,10 @@ html[lang=en] #toast{font-family:var(--f-body);font-size:13px}
         <form class="mine-form" id="mineForm">
           <input type="text" id="mineText" maxlength="60" autocomplete="off" placeholder="像素潮" aria-label="名字或一句话">
           <input type="date" id="mineDate" value="2000-01-01" aria-label="生日" hidden>
+          <div class="md-row" id="mdRow" hidden>
+            <select id="mineMonth" aria-label="月"></select>
+            <select id="mineDay" aria-label="日"></select>
+          </div>
           <div class="row" id="yearRow" hidden><span class="zh" data-i="withYear">含年份</span><label class="switch"><input type="checkbox" id="mineYear" checked aria-label="含年份"><span></span></label></div>
           <p class="hint" id="yearHint" hidden></p>
           <button class="btn primary" type="submit" data-i="make">生成</button>
@@ -489,8 +501,8 @@ html[lang=en] #toast{font-family:var(--f-body);font-size:13px}
       palette: '配色', hue: '色相整体旋转', avatar: '头像预览', circle: '圆形', rounded: '圆角', square: '方',
       pairTitle: '一对头像', pairExport: '导出一对', pairHint: '两张并排时浪是连着的，适合情侣或好友各用一张。',
       more: '更多', angle: '渐变方向', amp: '浪线起伏', terrace: '平台长短', bands: '色带数量', dots: '散落方块 · 密度', dotMax: '散落方块 · 最大',
-      pairRatio: '散落方块 · 成对比例', sil: '剪影（月亮）', silNext: '换一个', invert: '深浅反转', motion: '画布动效', rareDebug: '刷一张稀有的（调试）',
-      export: '导出 PNG / SVG', exportHint: '导出的是这张图的静止画面，与编号一一对应。', exTitle: '导出', res: '分辨率', shape: '形状', safe: '安全区参考线',
+      pairRatio: '散落方块 · 成对比例', sil: '剪影（月亮）', silNext: '换一个', invert: '深浅反转', play: '▶ 动起来', pause: '❚❚ 停下', rareDebug: '刷一张稀有的（调试）',
+      export: '导出 PNG / SVG', exportHint: '画布静止时显示的就是导出的画面，与编号一一对应；「动起来」只是预览浪的样子。', exTitle: '导出', res: '分辨率', shape: '形状', safe: '安全区参考线',
       format: '格式', download: '下载', longPress: '长按图片保存到相册。', close: '关闭',
       todayTitle: '今日一张', todayNote: '按你所在地的日期，同一天全世界看到同一张。每天来看一眼，日历上就多一格。', openEditor: '在编辑器里打开',
       mineTitle: '我的海', mineNote: '先选一个画面（或交给「自动」），再输入名字、一句话或生日。同样的输入永远得到同一张，换台手机也一样。', byName: '名字', byBirthday: '生日', byCombo: '名字 + 生日', withYear: '含年份', make: '生成', originIs: '来自 ',
@@ -517,8 +529,8 @@ html[lang=en] #toast{font-family:var(--f-body);font-size:13px}
       palette: 'Colors', hue: 'Rotate hue', avatar: 'Avatar preview', circle: 'Circle', rounded: 'Rounded', square: 'Square',
       pairTitle: 'Matching pair', pairExport: 'Export pair', pairHint: 'Side by side, the waves join up. One for you, one for a friend.',
       more: 'More', angle: 'Direction', amp: 'Wave height', terrace: 'Terrace length', bands: 'Bands', dots: 'Scatter · density', dotMax: 'Scatter · max size',
-      pairRatio: 'Scatter · pairs', sil: 'Silhouette (moon)', silNext: 'Another', invert: 'Invert light/dark', motion: 'Canvas motion', rareDebug: 'Find a rare one (debug)',
-      export: 'Export PNG / SVG', exportHint: 'Exports the still frame that matches this picture code.', exTitle: 'Export', res: 'Resolution', shape: 'Shape', safe: 'Safe-area guide',
+      pairRatio: 'Scatter · pairs', sil: 'Silhouette (moon)', silNext: 'Another', invert: 'Invert light/dark', play: '▶ Animate', pause: '❚❚ Stop', rareDebug: 'Find a rare one (debug)',
+      export: 'Export PNG / SVG', exportHint: 'The still canvas is exactly what you export and what the code stands for; “Animate” only previews the waves.', exTitle: 'Export', res: 'Resolution', shape: 'Shape', safe: 'Safe-area guide',
       format: 'Format', download: 'Download', longPress: 'Press and hold the image to save it.', close: 'Close',
       todayTitle: 'Picture of the day', todayNote: 'By your local date, everyone sees the same picture on the same day. Visit daily to fill your calendar.', openEditor: 'Open in editor',
       mineTitle: 'Your sea', mineNote: 'Pick a scene (or leave it on Auto), then type a name or phrase, or pick a birthday. The same input always gives the same picture, on any device.', byName: 'Name', byBirthday: 'Birthday', byCombo: 'Name + birthday', withYear: 'Include year', make: 'Make', originIs: 'From ',
@@ -655,7 +667,7 @@ html[lang=en] #toast{font-family:var(--f-body);font-size:13px}
   const S = {
     scene: heroPick.scene, seed: heroPick.seed, grid: heroGrain, ratio: RATIOS[0], variant: heroTime, hue: 0,
     angle: null, amp: null, terrace: 1, bands: null, dots: null, dotMax: 5, pair: 0.22, silhouette: true, silSeed: 0, invert: false,
-    motion: true, tier: '4K', shape: 'square', fmt: 'png', safe: false,
+    motion: false, tier: '4K', shape: 'square', fmt: 'png', safe: false,
     origin: { kind: 'hero', code: P.shortCode(heroPick.scene, heroPick.seed), day: heroDay }, edited: false,
   };
   const view = new P.View($('view'));
@@ -765,7 +777,8 @@ html[lang=en] #toast{font-family:var(--f-body);font-size:13px}
     $('silRow').hidden = sc.silhouette !== 'moon';
     $('sil').checked = S.silhouette; $('silNext').disabled = !S.silhouette;
     $('invert').checked = S.invert;
-    $('motion').checked = S.motion; $('motion').disabled = reduce.matches;
+    $('play').textContent = S.motion ? t('pause') : t('play');
+    $('play').hidden = reduce.matches;
   }
   function setScene(sc) {
     S.scene = sc;
@@ -792,7 +805,14 @@ html[lang=en] #toast{font-family:var(--f-body);font-size:13px}
   $('sil').addEventListener('change', (e) => { S.silhouette = e.target.checked; touched(); rebuild(); });
   $('silNext').addEventListener('click', () => { S.silSeed++; touched(); rebuild(300); });
   $('invert').addEventListener('change', (e) => { S.invert = e.target.checked; touched(); rebuild(400); });
-  $('motion').addEventListener('change', (e) => { S.motion = e.target.checked; kick(); });
+  // 默认静止：看到的就是这张图的配方帧，和导出、编号一致；点"动起来"预览浪，停下时回到配方帧
+  $('play').addEventListener('click', (e) => {
+    e.stopPropagation();
+    S.motion = !S.motion;
+    if (!S.motion) { editTime = 0; sim.setTime(0); view.render(); drawAvatars(); }
+    syncUi();
+    kick();
+  });
   $('findRare').addEventListener('click', () => {
     const s = P.findRare(S.scene, (Math.random() * 4294967296) >>> 0);
     if (s == null) { toast(t('rareNone')); return; }
@@ -992,7 +1012,9 @@ html[lang=en] #toast{font-family:var(--f-body);font-size:13px}
   })();
   function makeMine() {
     const typed = ($('mineText').value || $('mineText').placeholder).trim();
-    const key = P.normalizeDate($('mineDate').value) || '2000-01-01', withYear = $('mineYear').checked;
+    const withYear = $('mineYear').checked;
+    // 不含年份时用 2000 年（闰年，2 月 29 日也能选），只取月日参与计算
+    const key = withYear ? P.normalizeDate($('mineDate').value) || '2000-01-01' : `2000-${$('mineMonth').value}-${$('mineDay').value}`;
     let r, label, explain;
     if (mineMode === 'name') {
       r = P.namePick(typed, SEA, mineScene);
@@ -1025,13 +1047,44 @@ html[lang=en] #toast{font-family:var(--f-body);font-size:13px}
     mineMode = b.dataset.v;
     press($('mineTabs'), mineMode);
     $('mineText').hidden = mineMode === 'birthday';
-    $('mineDate').hidden = mineMode === 'name';
     $('yearRow').hidden = mineMode === 'name';
+    syncDateInputs();
     makeMine();
   });
   $('mineForm').addEventListener('submit', (e) => { e.preventDefault(); makeMine(); });
-  $('mineYear').addEventListener('change', makeMine);
+  // 月 / 日下拉：日数随月份变化
+  (function fillMonths() {
+    $('mineMonth').innerHTML = Array.from({ length: 12 }, (_, i) => `<option value="${String(i + 1).padStart(2, '0')}">${i + 1}</option>`).join('');
+  })();
+  function fillDays(keep) {
+    const n = new Date(2000, +$('mineMonth').value, 0).getDate();
+    $('mineDay').innerHTML = Array.from({ length: n }, (_, i) => `<option value="${String(i + 1).padStart(2, '0')}">${i + 1}</option>`).join('');
+    $('mineDay').value = String(Math.min(+keep || 1, n)).padStart(2, '0');
+  }
+  function syncDateInputs() {
+    const needDate = mineMode !== 'name', withYear = $('mineYear').checked;
+    $('mineDate').hidden = !(needDate && withYear);
+    $('mdRow').hidden = !(needDate && !withYear);
+    const monthWord = lang === 'zh' ? '月' : '', dayWord = lang === 'zh' ? '日' : '';
+    $('mineMonth').querySelectorAll('option').forEach((o, i) => { o.textContent = i + 1 + monthWord; });
+    $('mineDay').querySelectorAll('option').forEach((o, i) => { o.textContent = i + 1 + dayWord; });
+  }
+  $('mineYear').addEventListener('change', () => {
+    const full = P.normalizeDate($('mineDate').value) || '2000-01-01';
+    if ($('mineYear').checked) { // 打开：把月日放回带年份的日期里，年份保持原来的
+      const y = full.slice(0, 4), m = $('mineMonth').value, last = new Date(+y, +m, 0).getDate(); // 平年没有 2 月 29 日，就落到 28 日
+      $('mineDate').value = `${y}-${m}-${String(Math.min(+$('mineDay').value, last)).padStart(2, '0')}`;
+    } else { // 关闭：日期框换成月 / 日，值跟着带过来
+      $('mineMonth').value = full.slice(5, 7);
+      fillDays(full.slice(8, 10));
+    }
+    syncDateInputs();
+    makeMine();
+  });
   $('mineDate').addEventListener('change', makeMine);
+  $('mineMonth').addEventListener('change', () => { fillDays($('mineDay').value); syncDateInputs(); makeMine(); });
+  $('mineDay').addEventListener('change', makeMine);
+  $('mineMonth').value = '01'; fillDays('01');
   $('mineOpen').addEventListener('click', () => {
     if (!mineResult) return;
     openInEditor({ scene: mineResult.scene, seed: mineResult.seed, ratio: RATIOS[0], variant: 'day' },
@@ -1122,6 +1175,7 @@ html[lang=en] #toast{font-family:var(--f-body);font-size:13px}
     if (sim) syncUi();
     updateDayPlate();
     if (!$('calSheet').hidden) drawCal();
+    syncDateInputs();
     makeMine();
     if (!$('sheet').hidden) syncExport();
   }
