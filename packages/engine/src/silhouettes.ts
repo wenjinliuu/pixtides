@@ -26,6 +26,8 @@ export interface SilLayer {
 
 const ri = (r: Rng, a: number, b: number) => a + Math.floor(r() * (b - a + 1));
 const even = (v: number) => Math.max(2, Math.round(v / 2) * 2);
+/** 细部（桅杆、树干、灯室…）的粗细单位：32 格时 1 个半格，粒度越细越粗，保证细格子下也看得清 */
+export const detailUnit = (S: number) => Math.max(1, Math.round(S / 64));
 
 export function silRng(seed: number, kind: string, silSeed: number): Rng {
   return mulberry32((seedMix(seed, 'sil/' + kind) ^ Math.imul(silSeed + 1, 977)) >>> 0);
@@ -110,7 +112,8 @@ function mountains(ctx: SilCtx, r: Rng, scene: Scene, tone: (f: number | undefin
     if (spec.snow != null || spec.snowColor) { // 积雪：只在高处，雪线以上的山脊往下几格
       snow = new Int16Array(W);
       const line = peakTop + (floor - peakTop) * (0.35 + r() * 0.15);
-      for (let x = 0; x < W; x++) snow[x] = y[x] < line ? Math.min(Math.round((line - y[x]) * 0.7) + 2, 10) : 0;
+      const u = detailUnit(ctx.S);
+      for (let x = 0; x < W; x++) snow[x] = y[x] < line ? Math.min(Math.round((line - y[x]) * 0.7) + 2 * u, 10 * u) : 0;
     }
     ridges.push({ y, col: ctx.ridgeIdx?.[li] ?? tone(spec.tones[li], 0), snow, snowCol: ctx.snowIdx >= 0 ? ctx.snowIdx : tone(spec.snow, 1) });
   }
@@ -131,19 +134,20 @@ function trees(ctx: SilCtx, r: Rng, scene: Scene, col: number): SilLayer {
   const { W, H, S } = ctx;
   const kind = scene.treeKind ?? (r() < 0.5 ? 'pine' : 'round');
   const base = Math.round(H * (scene.groundY ?? 1));
+  const u = detailUnit(S);
   const shapes: { x: number; w: number; h: number; trunk: number }[] = [];
   let x = ri(r, -2, 4);
   while (x < W) {
     const h = even(S * (0.14 + r() * 0.16));
     const w = even(kind === 'pine' ? h * (0.45 + r() * 0.15) : h * (0.6 + r() * 0.25));
-    shapes.push({ x, w, h, trunk: even(h * 0.18) });
+    shapes.push({ x, w, h, trunk: Math.max(even(h * 0.18), 2 * u) });
     x += w + (r() < 0.3 ? 0 : ri(r, 0, 3) * 2) - (r() < 0.4 ? 2 : 0);
   }
   return {
     draw(cells) {
       for (const s of shapes) {
         const cx = s.x + s.w / 2, crownBottom = base - s.trunk;
-        rect(ctx, cells, Math.round(cx) - 1, crownBottom, 2, s.trunk, col);
+        rect(ctx, cells, Math.round(cx) - u, crownBottom, 2 * u, s.trunk, col);
         const ch = s.h - s.trunk;
         for (let yy = 0; yy < ch; yy += 2) {
           const f = (yy + 2) / ch; // 树顶 → 树冠底
@@ -166,18 +170,18 @@ function boat(ctx: SilCtx, r: Rng, scene: Scene, col: number): SilLayer {
   const hx = Math.round(r() * Math.max(1, W - len - 4)) + 2;
   const hy = Math.round(H * (scene.horizon ?? 0.62));
   const mast = even(len * (0.9 + r() * 0.4));
-  const tri = r() < 0.6, side = r() < 0.5 ? 1 : -1, ph = r() * 6.28;
+  const tri = r() < 0.6, side = r() < 0.5 ? 1 : -1, ph = r() * 6.28, u = detailUnit(S);
   return {
     draw(cells, t) {
-      const bob = Math.sin(t * 1.4 + ph) > 0.35 ? 1 : 0;
+      const bob = Math.sin(t * 1.4 + ph) > 0.35 ? u : 0;
       const y = hy + bob;
-      for (let k = 0; k < 4; k++) { const inset = k >= 2 ? 2 : 0; rect(ctx, cells, hx + inset, y + k, len - 2 * inset, 1, col); } // 船身：下面一格收窄
+      for (let k = 0; k < 4 * u; k++) { const inset = k >= 2 * u ? 2 * u : 0; rect(ctx, cells, hx + inset, y + k, len - 2 * inset, 1, col); } // 船身：下面一半收窄
       const mx = hx + Math.round(len * (side > 0 ? 0.35 : 0.65));
-      rect(ctx, cells, mx, y - mast, 1, mast, col);
-      const sh = mast - 2, sw = Math.round(len * 0.45);
+      rect(ctx, cells, mx, y - mast, u, mast, col);
+      const sh = mast - 2 * u, sw = Math.round(len * 0.45);
       for (let yy = 0; yy < sh; yy++) {
         const w = tri ? Math.max(1, Math.round((sw * (yy + 1)) / sh)) : Math.round(sw * (0.6 + (0.4 * (yy + 1)) / sh));
-        rect(ctx, cells, side > 0 ? mx + 1 : mx - w, y - mast + 1 + yy, w, 1, col);
+        rect(ctx, cells, side > 0 ? mx + u : mx - w, y - mast + u + yy, w, 1, col);
       }
     },
   };
@@ -192,7 +196,8 @@ function lighthouse(ctx: SilCtx, r: Rng, scene: Scene, col: number, stripe: numb
   const x0 = left ? ri(r, 2, Math.max(2, Math.round(W * 0.25))) : W - wb - ri(r, 2, Math.max(2, Math.round(W * 0.25)));
   const ground = Math.round(H * (scene.groundY ?? 0.86));
   const bands = 2 + Math.floor(r() * 3);
-  const cx = x0 + wb / 2, top = ground - h, lampY = top - 4;
+  const u = detailUnit(S);
+  const cx = x0 + wb / 2, top = ground - h, lampY = top - 4 * u;
   const beam = r() < 0.8, per = 6 + r() * 4;
   const rock = Array.from({ length: 5 }, () => ri(r, 0, 2) * 2);
   return {
@@ -202,7 +207,7 @@ function lighthouse(ctx: SilCtx, r: Rng, scene: Scene, col: number, stripe: numb
         if (on) for (let y = Math.max(0, lampY - 10); y < Math.min(H, lampY + 12); y++)
           for (let x = 0; x < W; x++) {
             const dx = (x + 0.5 - cx) * dir, dy = y + 0.5 - (lampY + 1);
-            if (dx > 3 && Math.abs(dy) < 1 + dx * 0.16) { const i = y * W + x; cells[i] = Math.min(L - 1, ctx.layer[i] + 1); }
+            if (dx > 3 * u && Math.abs(dy) < u + dx * 0.16) { const i = y * W + x; cells[i] = Math.min(L - 1, ctx.layer[i] + 1); }
           }
       }
       for (let y = top; y < ground; y++) {
@@ -210,9 +215,9 @@ function lighthouse(ctx: SilCtx, r: Rng, scene: Scene, col: number, stripe: numb
         const striped = Math.floor(f * bands * 2) % 2 === 1;
         rect(ctx, cells, Math.round(cx - w / 2), y, w, 1, striped ? stripe : col);
       }
-      rect(ctx, cells, Math.round(cx - wt / 2) - 1, top - 1, wt + 2, 1, col); // 走廊
-      rect(ctx, cells, Math.round(cx - wt / 2), lampY, wt, 3, ctx.disc >= 0 ? ctx.disc : L - 1); // 灯室
-      rect(ctx, cells, Math.round(cx - wt / 2), lampY - 2, wt, 2, col); // 屋顶
+      rect(ctx, cells, Math.round(cx - wt / 2) - u, top - u, wt + 2 * u, u, col); // 走廊
+      rect(ctx, cells, Math.round(cx - wt / 2), lampY, wt, 3 * u, ctx.disc >= 0 ? ctx.disc : L - 1); // 灯室
+      rect(ctx, cells, Math.round(cx - wt / 2), lampY - 2 * u, wt, 2 * u, col); // 屋顶
       for (let y = ground; y < H; y++) { // 礁石：从基座往下越来越宽，一直到底边
         const w = wb + 4 + Math.round(((y - ground) * 3) / 2) * 2 + rock[(y - ground) % rock.length];
         rect(ctx, cells, Math.round(cx - w / 2), y, w, 1, col);

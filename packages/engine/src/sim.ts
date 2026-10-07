@@ -3,7 +3,7 @@
 
 import { hueRotate, ramp, variantPalette } from './color';
 import { hashStr, mulberry32, seedMix, SEED_SPACE, tickRng, type Rng } from './rng';
-import { buildSilhouettes, type SilLayer } from './silhouettes';
+import { buildSilhouettes, detailUnit, type SilLayer } from './silhouettes';
 import type { Hex, Scene, SilKind, SimOptions, Variant } from './types';
 
 export const DEFAULTS: SimOptions = {
@@ -460,14 +460,14 @@ export class Sim {
     const strike = k === 0 ? into < 0.4 : tickRng(this.seed, 'bolt', k)() < 0.1 && into < 0.25;
     if (!strike) return;
     if (!this.bolt || this.bolt.k !== k) {
-      const r = mulberry32(seedMix(this.seed, 'bolt/' + k)), path: number[] = [];
+      const r = mulberry32(seedMix(this.seed, 'bolt/' + k)), path: number[] = [], u = 2 * detailUnit(this.S);
       const walk = (x: number, y: number, end: number, branch: boolean) => {
-        for (; y < end; y += 2) {
-          const nx = x + (Math.floor(r() * 3) - 1) * 2;
+        for (; y < end; y += u) {
+          const nx = x + (Math.floor(r() * 3) - 1) * u;
           // 横向错开时把上下两段连起来，闪电是一整道折线
-          for (let yy = y; yy < y + 2; yy++) for (let xx = Math.min(x, nx); xx < Math.max(x, nx) + 2; xx++) if (xx >= 0 && xx < W && yy < H) path.push(yy * W + xx);
+          for (let yy = y; yy < y + u; yy++) for (let xx = Math.min(x, nx); xx < Math.max(x, nx) + u; xx++) if (xx >= 0 && xx < W && yy < H) path.push(yy * W + xx);
           x = nx;
-          if (branch && r() < 0.12) walk(x, y + 2, Math.min(end, y + 2 + Math.round(H * 0.15)), false);
+          if (branch && r() < 0.12) walk(x, y + u, Math.min(end, y + u + Math.round(H * 0.15)), false);
         }
       };
       walk(Math.round((0.15 + r() * 0.7) * W / 2) * 2, 0, Math.round(H * (0.35 + r() * 0.35)), true);
