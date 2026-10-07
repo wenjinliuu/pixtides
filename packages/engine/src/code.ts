@@ -115,10 +115,12 @@ export function shortCode(scene: Scene, seed: number): string {
   return encodeRecipe({ scene, seed, ...RECIPE_DEFAULTS });
 }
 
-/** 解析：忽略大小写、连字符和空格；O 当 0，I / L 当 1。认不出返回 null */
+/** 解析：忽略大小写、连字符和空格；场景码之后 O 当 0，I / L 当 1。认不出返回 null */
 export function parseRecipe(str: string, scenes: readonly Scene[]): Recipe | null {
-  const raw = String(str).toUpperCase().replace(/[\s-]/g, '').replace(/O/g, '0').replace(/[IL]/g, '1');
-  const scene = scenes.find((x) => x.code.toUpperCase() === raw.slice(0, 2));
+  const all = String(str).toUpperCase().replace(/[\s-]/g, '');
+  const scene = scenes.find((x) => x.code.toUpperCase() === all.slice(0, 2));
+  // O / I / L 的纠错只用在场景码之后：场景码本身可能含这些字母（冰湖 IL）
+  const raw = all.slice(0, 2) + all.slice(2).replace(/O/g, '0').replace(/[IL]/g, '1');
   if (!scene) return null;
   const body = raw.slice(2, 10), tail = raw.slice(10);
   if (!body || /[^0-9A-HJKMNP-TV-Z]/.test(raw.slice(2))) return null;
