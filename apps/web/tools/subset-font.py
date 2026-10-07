@@ -14,7 +14,8 @@ root = web.parent.parent
 src = web / 'node_modules/@fontsource/fusion-pixel-12px-proportional-sc/files/fusion-pixel-12px-proportional-sc-latin-400-normal.woff2'
 out = web / 'public/fonts/pixtides-pixel.woff2'
 
-files = [*(web / 'src').rglob('*.astro'), *(web / 'src').rglob('*.ts'), *(root / 'packages/scenes/src').rglob('*.ts')]
+files = [*(web / 'src').rglob('*.astro'), *(web / 'src').rglob('*.ts'), *(root / 'packages/scenes/src').rglob('*.ts'),
+         *(root / 'apps/minitool').glob('*.html'), *(root / 'apps/minitool').glob('*.ts')]  # 小红书小工具版也用这份字体
 text = ''.join(p.read_text('utf-8') for p in files)
 chars = {c for c in text if ord(c) > 0x7F} | {chr(c) for c in range(0x20, 0x7F)}
 

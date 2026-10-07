@@ -319,7 +319,8 @@ export const CATEGORIES: readonly Category[] = [
   { id: 'mood', name: { zh: '心情', en: 'Moods' }, count: 5, cover: 'neon', live: true },
 ];
 
-export const byId: Readonly<Record<string, Scene>> = Object.fromEntries(SCENES.map((s) => [s.id, s]));
+// 不用 Object.fromEntries：小红书小工具要兼容 Chrome 61
+export const byId: Readonly<Record<string, Scene>> = SCENES.reduce<Record<string, Scene>>((m, s) => { m[s.id] = s; return m; }, {});
 
 /** 当前开放的画面（V0：海与水 9 个）；今日一张也从这里排期 */
 export const LIVE: readonly Scene[] = SCENES.filter((s) => s.cat === 'sea');

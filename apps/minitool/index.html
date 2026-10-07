@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <title>像素潮</title>
+  <link rel="stylesheet" href="./assets/style.css" />
+</head>
+<body>
+  <div class="app">
+    <header class="top">
+      <div class="brand"><span class="zh">像素潮</span><span class="en">PIXTIDES</span></div>
+      <p class="tag">每一张都由代码现场画出</p>
+    </header>
+
+    <div class="stage" id="stage">
+      <div class="box" id="box"><canvas id="view"></canvas></div>
+    </div>
+
+    <div class="namebar">
+      <button class="btn icon" id="prev" type="button" aria-label="上一个画面">&lt;</button>
+      <div class="name"><b id="name">浅滩</b><span class="code" id="code">SH-0000-0000</span></div>
+      <button class="btn icon" id="next" type="button" aria-label="下一个画面">&gt;</button>
+    </div>
+
+    <div class="actions">
+      <button class="btn" id="dice" type="button">换一张</button>
+      <button class="btn" id="save" type="button">保存到相册</button>
+      <button class="btn primary" id="post" type="button">发笔记</button>
+    </div>
+
+    <section class="group">
+      <div class="label">画面</div>
+      <div class="tabs" id="cats"></div>
+      <div class="scenes" id="scenes"></div>
+    </section>
+
+    <section class="group">
+      <div class="label">配色</div>
+      <div class="chips" id="presets"></div>
+    </section>
+
+    <section class="group">
+      <div class="label">像素粒度</div>
+      <div class="chips" id="grids"></div>
+    </section>
+
+    <section class="group">
+      <div class="label">画面比例</div>
+      <div class="chips" id="ratios"></div>
+    </section>
+
+    <p class="foot">编号就是这张图的配方，在网页版 pixtides.com 输入同一编号会得到同一张图。<br />代码 MIT · 生成的图归你，可商用 · 字体 Fusion Pixel / Silkscreen（OFL）</p>
+  </div>
+  <div class="toast" id="toast"></div>
+  <script src="./assets/main.js"></script>
+</body>
+</html>
