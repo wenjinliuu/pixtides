@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>像素潮 PixTides</title>
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Silkscreen&display=swap">
@@ -499,7 +500,7 @@ html[lang=en] #toast{font-family:var(--f-body);font-size:13px}
       pairTitle: '一对头像', pairExport: '导出一对', pairHint: '两张并排时浪是连着的，适合情侣或好友各用一张。',
       more: '更多', angle: '渐变方向', amp: '浪线起伏', terrace: '平台长短', bands: '色带数量', dots: '散落方块 · 密度', dotMax: '散落方块 · 最大',
       pairRatio: '散落方块 · 成对比例', sil: '剪影（月亮）', silNext: '换一个', invert: '深浅反转', play: '▶ 动起来', pause: '❚❚ 停下', rareDebug: '刷一张稀有的（调试）',
-      export: '导出 PNG / SVG', exportHint: '画布显示的就是导出的画面，与编号一一对应。', exTitle: '导出', res: '分辨率', shape: '形状', safe: '安全区参考线',
+      export: '导出 PNG / SVG', exportHint: '画布上的浪一直在动；导出的是这张图浪静下来的那一刻，与编号一一对应。', exTitle: '导出', res: '分辨率', shape: '形状', safe: '安全区参考线',
       format: '格式', download: '下载', longPress: '长按图片保存到相册。', close: '关闭',
       todayTitle: '今日一张', todayNote: '按你所在地的日期，同一天全世界看到同一张。每天来看一眼，日历上就多一格。', openEditor: '在编辑器里打开',
       mineTitle: '我的海', mineNote: '先选一个画面，再输入名字、一句话或生日。文字只决定底座构图，同样的输入永远是同一个构图，换台手机也一样。', byName: '名字', byBirthday: '生日', byCombo: '名字 + 生日', withYear: '含年份', make: '生成', originIs: '来自 ',
@@ -527,7 +528,7 @@ html[lang=en] #toast{font-family:var(--f-body);font-size:13px}
       pairTitle: 'Matching pair', pairExport: 'Export pair', pairHint: 'Side by side, the waves join up. One for you, one for a friend.',
       more: 'More', angle: 'Direction', amp: 'Wave height', terrace: 'Terrace length', bands: 'Bands', dots: 'Scatter · density', dotMax: 'Scatter · max size',
       pairRatio: 'Scatter · pairs', sil: 'Silhouette (moon)', silNext: 'Another', invert: 'Invert light/dark', play: '▶ Animate', pause: '❚❚ Stop', rareDebug: 'Find a rare one (debug)',
-      export: 'Export PNG / SVG', exportHint: 'The canvas shows exactly what you export and what the code stands for.', exTitle: 'Export', res: 'Resolution', shape: 'Shape', safe: 'Safe-area guide',
+      export: 'Export PNG / SVG', exportHint: 'The waves keep moving on the canvas; the export is the calm moment of this picture, matching its code.', exTitle: 'Export', res: 'Resolution', shape: 'Shape', safe: 'Safe-area guide',
       format: 'Format', download: 'Download', longPress: 'Press and hold the image to save it.', close: 'Close',
       todayTitle: 'Picture of the day', todayNote: 'By your local date, everyone sees the same picture on the same day. Visit daily to fill your calendar.', openEditor: 'Open in editor',
       mineTitle: 'Your sea', mineNote: 'Pick a scene, then type a name or phrase, or pick a birthday. The text sets only the base composition; the same input always gives the same composition, on any device.', byName: 'Name', byBirthday: 'Birthday', byCombo: 'Name + birthday', withYear: 'Include year', make: 'Make', originIs: 'From ',
@@ -1127,9 +1128,12 @@ html[lang=en] #toast{font-family:var(--f-body);font-size:13px}
       if (moving && tick) heroSim.setTime(P.globalTime());
       if ((moving && tick) || heroView.busy) heroView.render();
     }
-    if (editVisible && view.busy) { view.render(); drawAvatars(); } // 编辑区静止，只在溶解过渡时逐帧刷新
+    if (editVisible) { // 编辑区一直动：用户只定构图和配色，浪的细小起伏由时间驱动
+      if (moving && tick) { editTime += 1 / FPS; sim.setTime(editTime); }
+      if ((moving && tick) || view.busy) { view.render(); drawAvatars(); }
+    }
     if (tick) cards.forEach((c) => { if (c.playing) { c.t += 1 / FPS; c.sim.setTime(c.t); c.view.render(); } });
-    const busy = heroView.busy || view.busy || cards.some((c) => c.playing) || (moving && heroVisible);
+    const busy = heroView.busy || view.busy || cards.some((c) => c.playing) || (moving && (heroVisible || editVisible));
     if (busy) raf = requestAnimationFrame(frame);
   }
   function kick() { if (!raf && !document.hidden) { last = 0; raf = requestAnimationFrame(frame); } }
