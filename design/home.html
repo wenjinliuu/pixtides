@@ -104,6 +104,11 @@ html[lang=en] .plate{font-family:var(--f-pixel)}
 .seg button{appearance:none;border:0;border-radius:0;min-width:40px;min-height:36px;padding:0 8px;cursor:pointer;background:none;color:var(--h-fg);opacity:.7;font-family:var(--f-zh);font-size:12px}
 html[lang=en] .seg button{font-family:var(--f-pixel);font-size:12px}
 .seg button[aria-pressed=true]{background:var(--h-accent);color:var(--h-on);opacity:1}
+.hero-actions{display:flex;gap:8px;align-items:flex-end}
+.mine-scenes{grid-auto-columns:56px}
+.mine-scenes .scene canvas{width:56px;height:56px}
+.mine-scenes .auto{width:56px;height:56px;display:grid;place-items:center;border:2px solid var(--line);font-family:var(--f-zh);font-size:12px;color:var(--muted);background:var(--bg)}
+.mine-scenes .scene[aria-pressed=true] .auto{border-color:var(--accent);color:var(--fg)}
 @media (min-width:760px){.hero h1 .zh{font-size:72px}.hero h1 .en{font-size:32px}}
 
 /* ---------- 编辑区 ---------- */
@@ -233,7 +238,7 @@ html[lang=en] #toast{font-family:var(--f-body);font-size:13px}
 <body>
 
 <!-- ================= 第一屏：此刻的海 ================= -->
-<section class="hero" id="hero" aria-label="此刻的海">
+<section class="hero" id="hero" aria-label="今日一张">
   <canvas id="sea" aria-hidden="true"></canvas>
   <div class="hero-top">
     <button class="chip" id="theme" type="button">AUTO</button>
@@ -250,7 +255,8 @@ html[lang=en] #toast{font-family:var(--f-body);font-size:13px}
   </div>
   <div class="hero-foot">
     <div class="timebar">
-      <span class="plate" id="syncPlate">此刻全世界看到同一片海 · <b>UTC 00:00:00</b></span>
+      <span class="plate" id="dayPlate">今日一张 · No.1 · 潮汐</span>
+      <span class="plate" id="syncPlate">此刻全世界看到同一片浪 · <b>UTC 00:00:00</b></span>
       <span class="plate" id="timeLabel">昼 · 自动</span>
       <div class="seg" id="timeSeg" role="group" aria-label="时段调试">
         <button type="button" data-t="auto" aria-pressed="true" data-i="auto">自动</button>
@@ -259,6 +265,10 @@ html[lang=en] #toast{font-family:var(--f-body);font-size:13px}
         <button type="button" data-t="dusk" data-i="dusk">昏</button>
         <button type="button" data-t="night" data-i="night">夜</button>
       </div>
+    </div>
+    <div class="hero-actions">
+      <button class="btn" type="button" id="backToday" hidden data-i="backToday">回到今天</button>
+      <button class="btn" type="button" id="openCal"><span data-i="calendar">日历</span> <span class="k" id="calBadge">1</span></button>
     </div>
   </div>
 </section>
@@ -283,6 +293,25 @@ html[lang=en] #toast{font-family:var(--f-body);font-size:13px}
 
   <div class="drawer" aria-label="控件">
     <div class="group">
+      <div class="label"><span data-i="palette">配色</span><output id="palOut">跟随首页</output></div>
+      <div class="chips" id="variantChips">
+        <button class="chip zhc" type="button" data-v="dawn" data-i="dawn">晨</button>
+        <button class="chip zhc" type="button" data-v="day" data-i="day">昼</button>
+        <button class="chip zhc" type="button" data-v="dusk" data-i="dusk">昏</button>
+        <button class="chip zhc" type="button" data-v="night" data-i="night">夜</button>
+      </div>
+      <label class="label" for="hue"><span data-i="hue">色相整体旋转</span><output id="hueOut">0°</output></label>
+      <input type="range" id="hue" min="0" max="359" step="1" value="0">
+    </div>
+    <div class="group">
+      <div class="label"><span data-i="avatar">头像预览</span></div>
+      <div class="avatars">
+        <div class="av"><canvas class="c" id="avC" width="216" height="216"></canvas><span data-i="circle">圆形</span></div>
+        <div class="av"><canvas class="r" id="avR" width="216" height="216"></canvas><span data-i="rounded">圆角</span></div>
+        <div class="av av-tiny"><canvas class="c" id="avS" width="108" height="108"></canvas><span>36 px</span></div>
+      </div>
+    </div>
+    <div class="group">
       <div class="label"><span data-i="scene">画面 · 海与水</span><output id="sceneOut">1 / 9</output></div>
       <div class="scenes" id="scenes"></div>
     </div>
@@ -293,25 +322,6 @@ html[lang=en] #toast{font-family:var(--f-body);font-size:13px}
     <div class="group">
       <div class="label"><span data-i="ratio">画面比例</span><output id="ratioOut">1:1</output></div>
       <div class="chips" id="ratioChips"></div>
-    </div>
-    <div class="group">
-      <div class="label"><span data-i="palette">配色</span><output id="hueOut">0°</output></div>
-      <div class="chips" id="variantChips">
-        <button class="chip zhc" type="button" data-v="dawn" data-i="dawn">晨</button>
-        <button class="chip zhc" type="button" data-v="day" data-i="day">昼</button>
-        <button class="chip zhc" type="button" data-v="dusk" data-i="dusk">昏</button>
-        <button class="chip zhc" type="button" data-v="night" data-i="night">夜</button>
-      </div>
-      <label class="row" for="hue"><span class="zh" data-i="hue">色相整体旋转</span></label>
-      <input type="range" id="hue" min="0" max="359" step="1" value="0">
-    </div>
-    <div class="group">
-      <div class="label"><span data-i="avatar">头像预览</span></div>
-      <div class="avatars">
-        <div class="av"><canvas class="c" id="avC" width="216" height="216"></canvas><span data-i="circle">圆形</span></div>
-        <div class="av"><canvas class="r" id="avR" width="216" height="216"></canvas><span data-i="rounded">圆角</span></div>
-        <div class="av av-tiny"><canvas class="c" id="avS" width="108" height="108"></canvas><span>36 px</span></div>
-      </div>
     </div>
     <div class="group">
       <div class="label"><span data-i="pairTitle">一对头像</span></div>
@@ -352,40 +362,16 @@ html[lang=en] #toast{font-family:var(--f-body);font-size:13px}
 
 <!-- ================= 往下 ================= -->
 <main class="wrap">
-  <section class="sec" aria-labelledby="todayTitle">
-    <div class="sec-head">
-      <h2 id="todayTitle" data-i="todayTitle">今日一张</h2>
-      <p data-i="todayNote">按你所在地的日期，同一天全世界看到同一张。每天来看一眼，日历上就多一格。</p>
-    </div>
-    <div class="card split">
-      <canvas class="pic" id="todayCv" style="aspect-ratio:4/5" aria-label="今日一张"></canvas>
-      <div class="info">
-        <div class="big-date" id="todayDate">2026-10-07</div>
-        <div class="big-name" id="todayName">潮汐</div>
-        <div class="code" id="todayCode">No.1 · TD-000-0000</div>
-        <div class="swatches" id="todaySw" aria-hidden="true"></div>
-        <div class="cal">
-          <div class="cal-head">
-            <button class="btn icon" id="calPrev" type="button" aria-label="上个月">&lt;</button>
-            <b id="calMonth">2026-10</b>
-            <button class="btn icon" id="calNext" type="button" aria-label="下个月">&gt;</button>
-          </div>
-          <div class="cal-grid" id="calGrid"></div>
-          <p class="hint" id="calCount">已收集 1 天</p>
-        </div>
-        <div class="cta"><button class="btn primary" id="todayOpen" type="button" data-i="openEditor">在编辑器里打开</button></div>
-      </div>
-    </div>
-  </section>
-
   <section class="sec" aria-labelledby="mineTitle">
     <div class="sec-head">
       <h2 id="mineTitle" data-i="mineTitle">我的海</h2>
-      <p data-i="mineNote">输入名字或一句话，或者选你的生日。同样的输入永远得到同一张，换台手机也一样。</p>
+      <p data-i="mineNote">先选一个画面（或交给"自动"），再输入名字、一句话或生日。同样的输入永远得到同一张，换台手机也一样。</p>
     </div>
     <div class="card split">
       <canvas class="pic" id="mineCv" style="aspect-ratio:1/1" aria-label="我的海"></canvas>
       <div class="info">
+        <div class="label"><span data-i="mineScene">画面</span><output id="mineSceneOut">自动</output></div>
+        <div class="scenes mine-scenes" id="mineScenes"></div>
         <div class="mine-tabs" id="mineTabs">
           <button class="chip zhc" type="button" data-v="name" aria-pressed="true" data-i="byName">名字 / 一句话</button>
           <button class="chip zhc" type="button" data-v="birthday" data-i="byBirthday">生日</button>
@@ -448,6 +434,24 @@ html[lang=en] #toast{font-family:var(--f-body);font-size:13px}
     <button class="btn primary" id="doExport" type="button" style="min-height:52px" data-i="download">下载</button>
   </div>
 </div>
+<div class="sheet" id="calSheet" hidden>
+  <div class="sheet-card" role="dialog" aria-modal="true" aria-labelledby="calTitle">
+    <div class="sheet-head">
+      <h2 id="calTitle" data-i="calTitle">今日一张 · 日历</h2>
+      <button class="btn icon" id="closeCal" type="button" aria-label="关闭">X</button>
+    </div>
+    <p class="hint" data-i="calNote">每天打开就收集当天那张。点任意一天，第一屏换成那天的海，浪仍和全世界同步。</p>
+    <div class="cal">
+      <div class="cal-head">
+        <button class="btn icon" id="calPrev" type="button" aria-label="上个月">&lt;</button>
+        <b id="calMonth">2026-10</b>
+        <button class="btn icon" id="calNext" type="button" aria-label="下个月">&gt;</button>
+      </div>
+      <div class="cal-grid" id="calGrid"></div>
+      <p class="hint" id="calCount">已收集 1 天</p>
+    </div>
+  </div>
+</div>
 <div class="result" id="result" hidden>
   <div class="rcard">
     <img id="resultImg" alt="">
@@ -473,7 +477,9 @@ html[lang=en] #toast{font-family:var(--f-body);font-size:13px}
     zh: {
       tag: '每一张都由代码现场画出', sub: '选一个画面，掷骰子，调到喜欢，下载当头像或壁纸。', editThis: '调这张', random: '随机一张',
       auto: '自动', dawn: '晨', day: '昼', dusk: '昏', night: '夜', timeAuto: '自动', timeDebug: '调试',
-      sync: '此刻全世界看到同一片海', swipe: '← 左右滑动换画面 →', dice: '换一张', scene: '画面 · 海与水', grain: '像素粒度', ratio: '画面比例',
+      sync: '此刻全世界看到同一片浪', dayPlate: '今日一张 · 第 {n} 张 · {name}', rollPlate: '回看 {d} · 第 {n} 张 · {name}', backToday: '回到今天',
+      calendar: '日历', calTitle: '今日一张 · 日历', calNote: '每天打开就收集当天那张。点任意一天，第一屏换成那天的海，浪仍和全世界同步。',
+      mineScene: '画面', autoScene: '自动', palFollow: '跟随首页', fromDay: '{d} 的今日一张', swipe: '← 左右滑动换画面 →', dice: '换一张', scene: '画面 · 海与水', grain: '像素粒度', ratio: '画面比例',
       palette: '配色', hue: '色相整体旋转', avatar: '头像预览', circle: '圆形', rounded: '圆角', square: '方',
       pairTitle: '一对头像', pairExport: '导出一对', pairHint: '两张并排时浪是连着的，适合情侣或好友各用一张。',
       more: '更多', angle: '渐变方向', amp: '浪线起伏', terrace: '平台长短', bands: '色带数量', dots: '散落方块 · 密度', dotMax: '散落方块 · 最大',
@@ -481,7 +487,7 @@ html[lang=en] #toast{font-family:var(--f-body);font-size:13px}
       export: '导出 PNG / SVG', exportHint: '导出的是这张图的静止画面，与编号一一对应。', exTitle: '导出', res: '分辨率', shape: '形状', safe: '安全区参考线',
       format: '格式', download: '下载', longPress: '长按图片保存到相册。', close: '关闭',
       todayTitle: '今日一张', todayNote: '按你所在地的日期，同一天全世界看到同一张。每天来看一眼，日历上就多一格。', openEditor: '在编辑器里打开',
-      mineTitle: '我的海', mineNote: '输入名字或一句话，或者选你的生日。同样的输入永远得到同一张，换台手机也一样。', byName: '名字 / 一句话', byBirthday: '生日', make: '生成',
+      mineTitle: '我的海', mineNote: '先选一个画面（或交给「自动」），再输入名字、一句话或生日。同样的输入永远得到同一张，换台手机也一样。', byName: '名字 / 一句话', byBirthday: '生日', make: '生成',
       catsTitle: '六类风景', catsNote: '36 个画面，同一种画风。按住卡片看它动起来。', foot: '代码 MIT · 生成的图归你，可商用 · 字体 Fusion Pixel / Silkscreen（OFL）',
       soon: 'V1 上线', radial: '径向', cells: '格', lang: 'EN', prev: '上一个画面', next: '下一个画面',
       themeAuto: '自动', themeDark: '深色', themeLight: '浅色',
@@ -491,13 +497,15 @@ html[lang=en] #toast{font-family:var(--f-body);font-size:13px}
       rare: '稀有 · 鲸尾', rareFound: '找到一张稀有的：', rareNone: '这个画面没有彩蛋',
       originFrom: '改自 ', fromHero: '此刻的海', fromToday: '今日一张', fromName: '「{t}」的海', fromBirthday: '{d} 的海', fromCode: '编号',
       no: '第 {n} 张', collected: '已收集 {n} 天', wd: ['一', '二', '三', '四', '五', '六', '日'],
-      mineName: '「{t}」的海', mineDay: '{d} 的海', mineNameExplain: '规则：把文字规范化（去掉首尾空格、全角转半角、英文转小写）后算 SHA-256，前 4 字节做种子，后 4 字节挑画面。',
-      mineDayExplain: '生日用的就是那一天的「今日一张」规则：{d} 是第 {n} 张。', pairSaved: '已导出一对', heroCode: '今天的海',
+      mineName: '「{t}」的海', mineDay: '{d} 的海', mineNameExplain: '规范化后是「{n}」：全角转半角、英文转小写、去掉空格和分隔符；再算 SHA-256，前 4 字节做种子，后 4 字节在「自动」时挑画面。',
+      mineDayExplain: '生日用的就是那一天的「今日一张」：{d} 是第 {n} 张。选了画面时种子不变，只换画面。', pairSaved: '已导出一对', heroCode: '今天的海',
     },
     en: {
       tag: 'Every picture is drawn live, in code', sub: 'Pick a scene, roll the dice, tune it, and save it as an avatar or wallpaper.', editThis: 'Edit this one', random: 'Surprise me',
       auto: 'Auto', dawn: 'Dawn', day: 'Day', dusk: 'Dusk', night: 'Night', timeAuto: 'auto', timeDebug: 'debug',
-      sync: 'Everyone sees this same sea right now', swipe: '← Swipe for another scene →', dice: 'Reroll', scene: 'Scene · Sea & Water', grain: 'Pixel grain', ratio: 'Aspect ratio',
+      sync: 'Everyone sees these same waves right now', dayPlate: 'Picture of the day · No. {n} · {name}', rollPlate: 'Looking back {d} · No. {n} · {name}', backToday: 'Back to today',
+      calendar: 'Calendar', calTitle: 'Picture of the day · Calendar', calNote: 'Open the site to collect that day’s picture. Tap any day to show its sea up top; the waves stay in sync with everyone.',
+      mineScene: 'Scene', autoScene: 'Auto', palFollow: 'Following home', fromDay: 'picture of {d}', swipe: '← Swipe for another scene →', dice: 'Reroll', scene: 'Scene · Sea & Water', grain: 'Pixel grain', ratio: 'Aspect ratio',
       palette: 'Colors', hue: 'Rotate hue', avatar: 'Avatar preview', circle: 'Circle', rounded: 'Rounded', square: 'Square',
       pairTitle: 'Matching pair', pairExport: 'Export pair', pairHint: 'Side by side, the waves join up. One for you, one for a friend.',
       more: 'More', angle: 'Direction', amp: 'Wave height', terrace: 'Terrace length', bands: 'Bands', dots: 'Scatter · density', dotMax: 'Scatter · max size',
@@ -505,7 +513,7 @@ html[lang=en] #toast{font-family:var(--f-body);font-size:13px}
       export: 'Export PNG / SVG', exportHint: 'Exports the still frame that matches this picture code.', exTitle: 'Export', res: 'Resolution', shape: 'Shape', safe: 'Safe-area guide',
       format: 'Format', download: 'Download', longPress: 'Press and hold the image to save it.', close: 'Close',
       todayTitle: 'Picture of the day', todayNote: 'By your local date, everyone sees the same picture on the same day. Visit daily to fill your calendar.', openEditor: 'Open in editor',
-      mineTitle: 'Your sea', mineNote: 'Type a name or a phrase, or pick your birthday. The same input always gives the same picture, on any device.', byName: 'Name / phrase', byBirthday: 'Birthday', make: 'Make',
+      mineTitle: 'Your sea', mineNote: 'Pick a scene (or leave it on Auto), then type a name or phrase, or pick a birthday. The same input always gives the same picture, on any device.', byName: 'Name / phrase', byBirthday: 'Birthday', make: 'Make',
       catsTitle: 'Six worlds', catsNote: '36 scenes, one style. Press and hold a card to see it move.', foot: 'Code MIT · Your pictures are yours, commercial use OK · Fonts Fusion Pixel / Silkscreen (OFL)',
       soon: 'In V1', radial: 'radial', cells: 'cells', lang: '中', prev: 'Previous scene', next: 'Next scene',
       themeAuto: 'Auto', themeDark: 'Dark', themeLight: 'Light',
@@ -515,8 +523,8 @@ html[lang=en] #toast{font-family:var(--f-body);font-size:13px}
       rare: 'Rare · Whale tail', rareFound: 'Found a rare one: ', rareNone: 'This scene has no easter egg',
       originFrom: 'Remixed from ', fromHero: 'today’s sea', fromToday: 'picture of the day', fromName: '“{t}”', fromBirthday: '{d}', fromCode: 'code',
       no: 'No. {n}', collected: '{n} days collected', wd: ['M', 'T', 'W', 'T', 'F', 'S', 'S'],
-      mineName: '“{t}”', mineDay: 'The sea of {d}', mineNameExplain: 'Rule: normalize the text (trim, full-width to half-width, lowercase), take SHA-256, use the first 4 bytes as the seed and the next 4 to pick the scene.',
-      mineDayExplain: 'A birthday uses the picture-of-the-day rule for that date: {d} is No. {n}.', pairSaved: 'Pair exported', heroCode: 'Today’s sea',
+      mineName: '“{t}”', mineDay: 'The sea of {d}', mineNameExplain: 'Normalized to “{n}”: full-width to half-width, lowercase, spaces and separators removed. Then SHA-256: the first 4 bytes are the seed, the next 4 pick the scene when set to Auto.',
+      mineDayExplain: 'A birthday is that date’s picture of the day: {d} is No. {n}. Picking a scene keeps the seed and swaps the scene.', pairSaved: 'Pair exported', heroCode: 'Today’s sea',
     },
   };
   let lang = store.get('pt-lang', navigator.language.startsWith('zh') ? 'zh' : 'en');
@@ -554,34 +562,46 @@ html[lang=en] #toast{font-family:var(--f-body);font-size:13px}
   const dpr = () => Math.min(3, window.devicePixelRatio || 1);
   const SEA = P.SCENES.filter((s) => s.cat === 'sea');
 
-  // ================= 第一屏：全球同步的海 =================
+  // ================= 第一屏：今日一张，浪全球同步 =================
   const hero = $('hero');
   const heroView = new P.View($('sea'));
-  let heroSim = null, heroSea = P.globalSea(), timeMode = 'auto', heroTime = P.timeOfDay(), heroVisible = true;
-  function buildHero() {
-    heroSea = P.globalSea();
+  let todayKey = P.localDateKey(new Date());
+  let heroDay = todayKey, heroPick = P.dayPick(todayKey, SEA), heroSim = null;
+  let timeMode = 'auto', heroTime = P.timeOfDay(), heroVisible = true;
+  function buildHero(transition) {
+    heroPick = P.dayPick(heroDay, SEA);
     const w = hero.clientWidth, h = hero.clientHeight;
     const G = Math.max(14, Math.min(40, Math.round(Math.min(w, h) / 17)));
-    heroSim = P.create('shoal', { grid: G, ratio: [w, h], seed: heroSea.seed, time: heroSea.t, variant: heroTime, rare: false });
+    if (transition && heroSim && !reduce.matches) heroView.dissolve(transition);
+    heroSim = P.create(heroPick.scene, { grid: G, ratio: [w, h], seed: heroPick.seed, time: P.globalTime(), variant: heroTime });
     heroView.attach(heroSim, Math.round(w * dpr()), Math.round(h * dpr()));
     heroView.render();
     applyHeroTokens(heroSim.pal.slice(0, heroSim.L));
+    updateDayPlate();
+    kick();
+  }
+  function updateDayPlate() {
+    const vars = { n: heroPick.no, name: heroPick.scene.name[lang], d: heroDay };
+    $('dayPlate').textContent = t(heroDay === todayKey ? 'dayPlate' : 'rollPlate', vars) + (heroSim && heroSim.rare ? ' · ' + t('rare') : '');
+    $('backToday').hidden = heroDay === todayKey;
   }
   function setHeroTime(next, animate) {
     if (next === heroTime) return;
     heroTime = next;
-    if (animate && !reduce.matches) heroView.dissolve(1000);
-    heroSim.setPalette(P.SHOAL_TIMES[heroTime]);
-    applyHeroTokens(P.SHOAL_TIMES[heroTime]);
-    heroView.render();
+    buildHero(animate ? 1000 : 0);
     updateTimeLabel();
-    kick();
+    followHero();
+  }
+  function setHeroDay(key) {
+    if (key === heroDay) return;
+    heroDay = key;
+    buildHero(800);
+    followHero();
   }
   function updateTimeLabel() { $('timeLabel').textContent = t(heroTime) + ' · ' + (timeMode === 'auto' ? t('timeAuto') : t('timeDebug')); }
   function updateSyncPlate() {
     const d = new Date(), pad = (n) => String(n).padStart(2, '0');
-    $('syncPlate').innerHTML = '';
-    $('syncPlate').append(t('sync') + ' · ');
+    $('syncPlate').textContent = t('sync') + ' · ';
     const b = document.createElement('b');
     b.textContent = `UTC ${pad(d.getUTCHours())}:${pad(d.getUTCMinutes())}:${pad(d.getUTCSeconds())}`;
     $('syncPlate').append(b);
@@ -594,12 +614,17 @@ html[lang=en] #toast{font-family:var(--f-body);font-size:13px}
     setHeroTime(timeMode === 'auto' ? P.timeOfDay() : timeMode, true);
     updateTimeLabel();
   });
+  $('backToday').addEventListener('click', () => setHeroDay(todayKey));
   setInterval(() => {
     updateSyncPlate();
     if (timeMode === 'auto') setHeroTime(P.timeOfDay(), true);
-    if (P.globalSea().key !== heroSea.key) buildHero(); // UTC 零点换一片海
+    const k = P.localDateKey(new Date());
+    if (k !== todayKey) { // 本地零点：换成新的一张，并收进日历
+      const follow = heroDay === todayKey;
+      todayKey = k; collect(k);
+      if (follow) setHeroDay(k);
+    }
   }, 1000);
-
   // ================= 编辑区 =================
   const GRIDS = [12, 16, 24, 32, 48, 64, 96, 128];
   const RATIOS = [
@@ -608,10 +633,10 @@ html[lang=en] #toast{font-family:var(--f-body);font-size:13px}
     { id: '3x4', r: [3, 4], label: '3:4' }, { id: '4x5', r: [4, 5], label: '4:5' },
   ];
   const S = {
-    scene: SEA[0], seed: heroSea.seed, grid: 32, ratio: RATIOS[0], variant: heroTime, hue: 0,
+    scene: heroPick.scene, seed: heroPick.seed, grid: 32, ratio: RATIOS[0], variant: heroTime, hue: 0,
     angle: null, amp: null, terrace: 1, bands: null, dots: null, dotMax: 5, pair: 0.22, silhouette: true, silSeed: 0, invert: false,
     motion: true, tier: '4K', shape: 'square', fmt: 'png', safe: false,
-    origin: { kind: 'hero' }, edited: false,
+    origin: { kind: 'hero', code: P.shortCode(heroPick.scene, heroPick.seed), day: heroDay }, edited: false,
   };
   const view = new P.View($('view'));
   let sim = null, editTime = 0, editVisible = false;
@@ -689,8 +714,7 @@ html[lang=en] #toast{font-family:var(--f-body);font-size:13px}
   function originText() {
     const o = S.origin;
     if (!o) return '';
-    if (o.kind === 'hero') return t('fromHero');
-    if (o.kind === 'today') return t('fromToday') + ' ' + o.code;
+    if (o.kind === 'hero') return (o.day === todayKey ? t('fromToday') : t('fromDay', { d: o.day })) + ' ' + o.code;
     if (o.kind === 'name') return t('fromName', { t: o.text }) + ' ' + o.code;
     if (o.kind === 'birthday') return t('fromBirthday', { d: o.text }) + ' ' + o.code;
     return o.code;
@@ -709,6 +733,7 @@ html[lang=en] #toast{font-family:var(--f-body);font-size:13px}
     press($('gridChips'), S.grid); $('gridOut').textContent = S.grid + ' ' + t('cells');
     press($('ratioChips'), S.ratio.id); $('ratioOut').textContent = S.ratio.label;
     press($('variantChips'), S.variant);
+    $('palOut').textContent = following() ? t('palFollow') + ' · ' + t(S.variant) : t(S.variant);
     $('hue').value = S.hue; $('hueOut').textContent = S.hue + '°';
     const radial = sc.layout === 'radial', ang = S.angle != null ? S.angle : sc.angle;
     $('angle').value = ang; $('angle').disabled = radial; $('angleOut').textContent = radial ? t('radial') : ang + '°';
@@ -769,13 +794,20 @@ html[lang=en] #toast{font-family:var(--f-body);font-size:13px}
     el.addEventListener('pointercancel', () => { id = null; });
   })();
 
-  // 第一屏 → 编辑区：把"此刻的海"带下来
+  // 第一屏 → 编辑区：把第一屏那张（含所选时段的配色）带下来。
+  // 编辑区没被改过时一直跟随第一屏；用户在编辑区自己选了配色或改了参数，就不再跟随
+  const following = () => !!(S.origin && S.origin.kind === 'hero' && !S.edited);
   function editHero() {
-    load({ scene: SEA[0], seed: heroSea.seed, variant: heroTime, ratio: S.ratio }, { kind: 'hero' });
+    load({ scene: heroPick.scene, seed: heroPick.seed, variant: heroTime, ratio: S.ratio },
+      { kind: 'hero', code: P.shortCode(heroPick.scene, heroPick.seed), day: heroDay });
+  }
+  function followHero() {
+    if (!following()) return;
+    if (S.scene !== heroPick.scene || S.seed !== heroPick.seed || S.variant !== heroTime || S.origin.day !== heroDay) editHero();
   }
   $('editThis').addEventListener('click', (e) => {
     e.preventDefault();
-    if (S.origin?.kind !== 'hero' || S.seed !== heroSea.seed) editHero();
+    if (!following()) editHero();
     $('edit').scrollIntoView({ behavior: reduce.matches ? 'auto' : 'smooth' });
   });
   $('randomOne').addEventListener('click', () => {
@@ -874,27 +906,11 @@ html[lang=en] #toast{font-family:var(--f-body);font-size:13px}
     if (await offer(`pixtides-${code}-pair-A.png`, await canvasBlob(a))) await offer(`pixtides-${code}-pair-B.png`, await canvasBlob(b));
   });
 
-  // ================= 今日一张 + 收集日历 =================
-  const todayView = new P.View($('todayCv'));
-  const todayKey = P.localDateKey(new Date());
-  let shownDay = todayKey, calMonth = todayKey.slice(0, 7);
+  // ================= 收集日历（弹层）：回看任意一天 =================
+  let calMonth = todayKey.slice(0, 7);
   const days = new Set(store.get('pt-days', []));
-  days.add(todayKey);
-  store.set('pt-days', [...days]);
-  function showDay(key) {
-    shownDay = key;
-    const d = P.dayPick(key, SEA);
-    const s = P.create(d.scene, { grid: 24, ratio: [4, 5], seed: d.seed });
-    const w = Math.round(($('todayCv').clientWidth || 360) * dpr());
-    todayView.attach(s, w, Math.round((w * 5) / 4));
-    todayView.render();
-    $('todayDate').textContent = key;
-    $('todayName').textContent = d.scene.name[lang] + (s.rare ? ' · ' + t('rare') : '');
-    $('todayCode').textContent = t('no', { n: d.no }) + ' · ' + P.shortCode(d.scene, d.seed);
-    $('todaySw').textContent = '';
-    s.pal.slice(0, s.L).forEach((h) => { const i = document.createElement('i'); i.style.background = h; $('todaySw').append(i); });
-    drawCal();
-  }
+  function collect(key) { days.add(key); store.set('pt-days', [...days]); $('calBadge').textContent = days.size; }
+  collect(todayKey);
   function drawCal() {
     const [y, m] = calMonth.split('-').map(Number);
     const first = new Date(y, m - 1, 1), daysIn = new Date(y, m, 0).getDate(), lead = (first.getDay() + 6) % 7;
@@ -906,7 +922,7 @@ html[lang=en] #toast{font-family:var(--f-body);font-size:13px}
       const key = `${y}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
       const b = document.createElement('button');
       b.type = 'button'; b.className = 'day'; b.textContent = d;
-      b.setAttribute('aria-pressed', key === shownDay);
+      b.setAttribute('aria-pressed', key === heroDay);
       if (key > todayKey) { b.classList.add('future'); b.disabled = true; }
       if (key === todayKey) b.classList.add('today');
       if (days.has(key)) {
@@ -916,7 +932,7 @@ html[lang=en] #toast{font-family:var(--f-body);font-size:13px}
         P.paint(cv.getContext('2d'), P.create(pk.scene, { grid: 8, seed: pk.seed }), 48, 48);
         b.append(cv);
       }
-      b.addEventListener('click', () => showDay(key));
+      b.addEventListener('click', () => { setHeroDay(key); closeCal(); window.scrollTo({ top: 0, behavior: reduce.matches ? 'auto' : 'smooth' }); });
       g.append(b);
     }
     $('calMonth').textContent = calMonth;
@@ -925,23 +941,46 @@ html[lang=en] #toast{font-family:var(--f-body);font-size:13px}
   const shiftMonth = (k) => { const [y, m] = calMonth.split('-').map(Number), d = new Date(y, m - 1 + k, 1); calMonth = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`; drawCal(); };
   $('calPrev').addEventListener('click', () => shiftMonth(-1));
   $('calNext').addEventListener('click', () => shiftMonth(1));
-  $('todayOpen').addEventListener('click', () => {
-    const d = P.dayPick(shownDay, SEA);
-    openInEditor({ scene: d.scene, seed: d.seed, ratio: RATIOS[7] }, { kind: 'today', code: P.shortCode(d.scene, d.seed) });
-  });
-
-  // ================= 我的海：名字 / 生日 → 种子 =================
+  function closeCal() { $('calSheet').hidden = true; }
+  $('openCal').addEventListener('click', () => { calMonth = heroDay.slice(0, 7); drawCal(); $('calSheet').hidden = false; $('closeCal').focus(); });
+  $('closeCal').addEventListener('click', closeCal);
+  $('calSheet').addEventListener('click', (e) => { if (e.target === $('calSheet')) closeCal(); });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeCal(); });
+  // ================= 我的海：选画面 + 名字 / 生日 → 种子 =================
   const mineView = new P.View($('mineCv'));
-  let mineMode = 'name', mineResult = null;
+  let mineMode = 'name', mineScene = null, mineResult = null;
+  (function buildMineScenes() {
+    const box = $('mineScenes');
+    const auto = document.createElement('button');
+    auto.type = 'button'; auto.className = 'scene'; auto.dataset.v = 'auto';
+    const a = document.createElement('div'); a.className = 'auto'; a.dataset.i = 'autoScene';
+    auto.append(a, document.createElement('span'));
+    box.append(auto);
+    SEA.forEach((sc) => {
+      const b = document.createElement('button');
+      b.type = 'button'; b.className = 'scene'; b.dataset.v = sc.id;
+      const cv = document.createElement('canvas'); cv.width = cv.height = 112;
+      b.append(cv, document.createElement('span'));
+      box.append(b);
+      P.paint(cv.getContext('2d'), P.create(sc, { grid: 12, seed: P.hashStr(sc.id), rare: false }), 112, 112);
+    });
+    box.addEventListener('click', (e) => {
+      const b = e.target.closest('.scene');
+      if (!b) return;
+      mineScene = b.dataset.v === 'auto' ? null : P.byId[b.dataset.v];
+      makeMine();
+    });
+  })();
   function makeMine() {
+    const typed = ($('mineText').value || $('mineText').placeholder).trim();
     if (mineMode === 'name') {
-      const r = P.namePick($('mineText').value || $('mineText').placeholder, SEA);
-      mineResult = { scene: r.scene, seed: r.seed, kind: 'name', text: r.text };
-      $('mineName').textContent = t('mineName', { t: r.text });
-      $('mineExplain').textContent = t('mineNameExplain');
+      const r = P.namePick(typed, SEA, mineScene);
+      mineResult = { scene: r.scene, seed: r.seed, kind: 'name', text: typed };
+      $('mineName').textContent = t('mineName', { t: typed });
+      $('mineExplain').textContent = t('mineNameExplain', { n: r.text });
     } else {
       const key = P.normalizeDate($('mineDate').value) || '2000-01-01', d = P.dayPick(key, SEA);
-      mineResult = { scene: d.scene, seed: d.seed, kind: 'birthday', text: key };
+      mineResult = { scene: mineScene || d.scene, seed: d.seed, kind: 'birthday', text: key };
       $('mineName').textContent = t('mineDay', { d: key });
       $('mineExplain').textContent = t('mineDayExplain', { d: key, n: d.no });
     }
@@ -950,6 +989,9 @@ html[lang=en] #toast{font-family:var(--f-body);font-size:13px}
     mineView.attach(s, w, w);
     mineView.render();
     $('mineCode').textContent = mineResult.scene.name[lang] + ' · ' + P.shortCode(mineResult.scene, mineResult.seed) + (s.rare ? ' · ' + t('rare') : '');
+    press($('mineScenes'), mineScene ? mineScene.id : 'auto');
+    $('mineSceneOut').textContent = mineScene ? mineScene.name[lang] : t('autoScene');
+    document.querySelectorAll('#mineScenes .scene span').forEach((sp, i) => { sp.textContent = i ? SEA[i - 1].name[lang] : ''; });
   }
   $('mineTabs').addEventListener('click', (e) => {
     const b = e.target.closest('[data-v]');
@@ -1018,7 +1060,7 @@ html[lang=en] #toast{font-family:var(--f-body);font-size:13px}
     const tick = acc >= 1 / FPS;
     if (tick) acc %= 1 / FPS;
     if (heroVisible) {
-      if (moving && tick) heroSim.setTime(P.globalSea().t);
+      if (moving && tick) heroSim.setTime(P.globalTime());
       if ((moving && tick) || heroView.busy) heroView.render();
     }
     if (editVisible) {
@@ -1049,7 +1091,8 @@ html[lang=en] #toast{font-family:var(--f-body);font-size:13px}
     syncThemeChip(); updateTimeLabel(); updateSyncPlate();
     buildCats();
     if (sim) syncUi();
-    showDay(shownDay);
+    updateDayPlate();
+    if (!$('calSheet').hidden) drawCal();
     makeMine();
     if (!$('sheet').hidden) syncExport();
   }
@@ -1071,7 +1114,7 @@ html[lang=en] #toast{font-family:var(--f-body);font-size:13px}
   buildHero();
   lastSize = hero.clientWidth + 'x' + hero.clientHeight;
   buildChips();
-  if (fromHash && fromHash.scene.cat === 'sea') { S.scene = fromHash.scene; S.seed = fromHash.seed; S.origin = { kind: 'code', code: P.shortCode(fromHash.scene, fromHash.seed) }; }
+  if (fromHash && fromHash.scene.cat === 'sea') { S.scene = fromHash.scene; S.seed = fromHash.seed; S.variant = 'day'; S.origin = { kind: 'code', code: P.shortCode(fromHash.scene, fromHash.seed) }; }
   rebuild();
   applyLang();
   if (fromHash) $('edit').scrollIntoView();
