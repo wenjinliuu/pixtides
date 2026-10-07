@@ -1,10 +1,15 @@
 {
-  // 像素潮 / PixTides：静态站点跑在 Cloudflare Workers 上（只有静态资源，没有 Worker 代码）
-  // 部署前先运行 node design/tools/build-site.mjs 生成 site/
+  // 像素潮 / PixTides：纯静态站点跑在 Cloudflare Workers 上（只有静态资源，没有 Worker 代码）
+  // 产物在 apps/web/dist。Cloudflare Workers Builds 的构建命令填 pnpm build（它不读下面的 build.command）；
+  // build.command 只给本地 npx wrangler dev / deploy 用
   "name": "pixtides",
   "compatibility_date": "2026-10-07",
+  "build": { "command": "pnpm build" },
   "assets": {
-    "directory": "./site",
-    "not_found_handling": "404-page"
-  }
+    "directory": "./apps/web/dist",
+    // 没有对应文件的地址都回到首页，由前端解析：/p/<编号> 是分享链接
+    "not_found_handling": "single-page-application"
+  },
+  // PR 分支的预览部署（Workers Builds 跑 npx wrangler preview）要求有这个块，内容可以为空
+  "previews": {}
 }

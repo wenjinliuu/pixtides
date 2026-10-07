@@ -1,0 +1,255 @@
+---
+// 首页和编辑器是同一页：第一屏是今日一张，往下滚进入编辑区。交互全部在 src/client/app.ts。
+import '@fontsource/silkscreen/400.css';
+import '../styles/site.css';
+---
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>像素潮 PixTides</title>
+<meta name="description" content="像素潮：每一张都由代码现场画出的像素风景。选一个画面，掷骰子，调到喜欢，下载当头像或壁纸。">
+<meta property="og:title" content="像素潮 PixTides">
+<meta property="og:description" content="每一张都由代码现场画出的像素风景。">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="preload" href="/fonts/pixtides-pixel.woff2" as="font" type="font/woff2" crossorigin>
+</head>
+<body>
+<!-- ================= 第一屏：此刻的海 ================= -->
+<section class="hero" id="hero" aria-label="今日一张">
+  <canvas id="sea" aria-hidden="true"></canvas>
+  <div class="hero-top">
+    <button class="chip" id="grain" type="button">粒度 · 中</button>
+    <button class="chip" id="theme" type="button">AUTO</button>
+    <button class="chip" id="lang" type="button" style="min-width:48px">EN</button>
+  </div>
+  <div class="hero-text">
+    <h1><span class="zh">像素潮</span><span class="en">PixTides</span></h1>
+    <p class="tag" data-i="tag">每一张都由代码现场画出</p>
+    <p class="sub" data-i="sub">选一个画面，掷骰子，调到喜欢，下载当头像或壁纸。</p>
+    <div class="cta">
+      <a class="btn primary" href="#edit" id="editThis"><span data-i="editThis">调这张</span> <span class="k" aria-hidden="true">↓</span></a>
+      <button class="btn" type="button" id="randomOne"><span data-i="random">随机一张</span> <span class="k" aria-hidden="true">⚄</span></button>
+    </div>
+  </div>
+  <div class="hero-foot">
+    <div class="timebar">
+      <span class="plate" id="dayPlate">今日一张 · No.1 · 潮汐</span>
+      <span class="plate" id="syncPlate">此刻全世界看到同一片浪 · <b>UTC 00:00:00</b></span>
+      <span class="plate" id="timeLabel">昼 · 自动</span>
+      <div class="seg" id="timeSeg" role="group" aria-label="时段调试">
+        <button type="button" data-t="auto" aria-pressed="true" data-i="auto">自动</button>
+        <button type="button" data-t="dawn" data-i="dawn">晨</button>
+        <button type="button" data-t="day" data-i="day">昼</button>
+        <button type="button" data-t="dusk" data-i="dusk">昏</button>
+        <button type="button" data-t="night" data-i="night">夜</button>
+      </div>
+    </div>
+    <div class="hero-actions">
+      <button class="btn" type="button" id="backToday" hidden data-i="backToday">回到今天</button>
+      <button class="btn" type="button" id="openCal"><span data-i="calendar">日历</span> <span class="k" id="calBadge">1</span></button>
+    </div>
+  </div>
+</section>
+
+<!-- ================= 编辑区 ================= -->
+<section class="edit" id="edit" aria-label="编辑">
+  <div class="stage">
+    <div class="canvas-wrap" id="wrap">
+      <div class="canvas-box" id="box">
+        <canvas id="view" aria-label="当前画面"></canvas>
+        <span class="badge rare-tag" id="rareTag" hidden>稀有 · 鲸尾</span>
+        <span class="swipe-hint" id="swipeHint" data-i="swipe">← 左右滑动换画面 →</span>
+      </div>
+    </div>
+    <div class="namebar">
+      <button class="btn icon" id="prev" type="button" aria-label="上一个画面">&lt;</button>
+      <div class="name"><b id="name">浅滩</b><button class="codebtn" id="code" type="button" data-i-title="copyCode">SH-0000-0000</button><span class="origin" id="origin" hidden></span></div>
+      <button class="btn icon" id="next" type="button" aria-label="下一个画面">&gt;</button>
+      <button class="btn primary" id="dice" type="button"><span data-i="dice">换一张</span><span class="k" aria-hidden="true">⚄</span></button>
+    </div>
+  </div>
+
+  <div class="drawer" aria-label="控件">
+    <div class="group">
+      <div class="label"><span data-i="palette">配色</span><output id="palOut">跟随首页</output></div>
+      <div class="chips" id="variantChips">
+        <button class="chip zhc" type="button" data-v="dawn" data-i="dawn">晨</button>
+        <button class="chip zhc" type="button" data-v="day" data-i="day">昼</button>
+        <button class="chip zhc" type="button" data-v="dusk" data-i="dusk">昏</button>
+        <button class="chip zhc" type="button" data-v="night" data-i="night">夜</button>
+      </div>
+      <label class="label" for="hue"><span data-i="hue">色相整体旋转</span><output id="hueOut">0°</output></label>
+      <input type="range" id="hue" min="0" max="359" step="1" value="0">
+    </div>
+    <div class="group">
+      <div class="label"><span data-i="avatar">头像预览</span></div>
+      <div class="avatars">
+        <div class="av"><canvas class="c" id="avC" width="216" height="216"></canvas><span data-i="circle">圆形</span></div>
+        <div class="av"><canvas class="r" id="avR" width="216" height="216"></canvas><span data-i="rounded">圆角</span></div>
+        <div class="av av-tiny"><canvas class="c" id="avS" width="108" height="108"></canvas><span>36 px</span></div>
+      </div>
+    </div>
+    <div class="group">
+      <div class="label"><span data-i="scene">画面 · 海与水</span><output id="sceneOut">1 / 9</output></div>
+      <div class="scenes" id="scenes"></div>
+    </div>
+    <div class="group">
+      <div class="label"><span data-i="grain">像素粒度</span><output id="gridOut">32</output></div>
+      <div class="chips" id="gridChips"></div>
+    </div>
+    <div class="group">
+      <div class="label"><span data-i="ratio">画面比例</span><output id="ratioOut">1:1</output></div>
+      <div class="chips" id="ratioChips"></div>
+    </div>
+    <div class="group">
+      <div class="label"><span data-i="pairTitle">一对头像</span></div>
+      <div class="row">
+        <div class="pair"><canvas id="pairA" width="216" height="216"></canvas><canvas id="pairB" width="216" height="216"></canvas></div>
+        <button class="btn" id="pairExport" type="button" data-i="pairExport">导出一对</button>
+      </div>
+      <p class="hint" data-i="pairHint">两张并排时浪是连着的，适合情侣或好友各用一张。</p>
+    </div>
+    <details class="more" id="more">
+      <summary data-i="more">更多</summary>
+      <div class="more-body">
+        <div class="group"><label class="label" for="angle"><span data-i="angle">渐变方向</span><output id="angleOut">94°</output></label><input type="range" id="angle" min="0" max="359" step="1" value="94"></div>
+        <div class="group"><label class="label" for="amp"><span data-i="amp">浪线起伏</span><output id="ampOut">1.0</output></label><input type="range" id="amp" min="0" max="2" step="0.1" value="1"></div>
+        <div class="group"><label class="label" for="terrace"><span data-i="terrace">平台长短</span><output id="terraceOut">1.0</output></label><input type="range" id="terrace" min="0.4" max="2.5" step="0.1" value="1"></div>
+        <div class="group"><label class="label" for="bands"><span data-i="bands">色带数量</span><output id="bandsOut">6</output></label><input type="range" id="bands" min="4" max="10" step="1" value="6"></div>
+        <div class="group"><label class="label" for="dots"><span data-i="dots">散落方块 · 密度</span><output id="dotsOut">1.0</output></label><input type="range" id="dots" min="0" max="3" step="0.1" value="1"></div>
+        <div class="group"><label class="label" for="dotMax"><span data-i="dotMax">散落方块 · 最大</span><output id="dotMaxOut">2.5</output></label><input type="range" id="dotMax" min="2" max="5" step="1" value="5"></div>
+        <div class="group"><label class="label" for="pair"><span data-i="pairRatio">散落方块 · 成对比例</span><output id="pairOut">22%</output></label><input type="range" id="pair" min="0" max="0.6" step="0.02" value="0.22"></div>
+        <div class="row" id="silRow">
+          <span class="zh" data-i="sil">剪影（月亮）</span>
+          <span style="display:flex;gap:10px;align-items:center">
+            <button class="btn" id="silNext" type="button" style="min-height:36px" data-i="silNext">换一个</button>
+            <label class="switch"><input type="checkbox" id="sil" checked aria-label="剪影"><span></span></label>
+          </span>
+        </div>
+        <div class="row"><span class="zh" data-i="invert">深浅反转</span><label class="switch"><input type="checkbox" id="invert" aria-label="深浅反转"><span></span></label></div>
+        <div class="row"><span class="zh" data-i="rareDebug">刷一张稀有的（调试）</span><button class="btn" id="findRare" type="button" style="min-height:36px">1/512</button></div>
+      </div>
+    </details>
+    <div class="group">
+      <button class="btn primary" id="openExport" type="button" style="min-height:52px" data-i="export">导出 PNG / SVG</button>
+      <p class="hint" data-i="exportHint">导出的是这张图的静止画面，与编号一一对应。</p>
+    </div>
+  </div>
+</section>
+
+<!-- ================= 往下 ================= -->
+<main class="wrap">
+  <section class="sec" aria-labelledby="mineTitle">
+    <div class="sec-head">
+      <h2 id="mineTitle" data-i="mineTitle">我的海</h2>
+      <p data-i="mineNote">先选一个画面（或交给"自动"），再输入名字、一句话或生日。同样的输入永远得到同一张，换台手机也一样。</p>
+    </div>
+    <div class="card split">
+      <canvas class="pic" id="mineCv" style="aspect-ratio:1/1" aria-label="我的海"></canvas>
+      <div class="info">
+        <div class="label"><span data-i="mineScene">画面</span><output id="mineSceneOut">浅滩</output></div>
+        <div class="scenes mine-scenes" id="mineScenes"></div>
+        <div class="mine-tabs" id="mineTabs">
+          <button class="chip zhc" type="button" data-v="name" aria-pressed="true" data-i="byName">名字</button>
+          <button class="chip zhc" type="button" data-v="birthday" data-i="byBirthday">生日</button>
+          <button class="chip zhc" type="button" data-v="combo" data-i="byCombo">名字 + 生日</button>
+        </div>
+        <form class="mine-form" id="mineForm">
+          <input type="text" id="mineText" maxlength="60" autocomplete="off" placeholder="像素潮" aria-label="名字或一句话">
+          <input type="date" id="mineDate" value="2000-01-01" aria-label="生日" hidden>
+          <div class="md-row" id="mdRow" hidden>
+            <select id="mineMonth" aria-label="月"></select>
+            <select id="mineDay" aria-label="日"></select>
+          </div>
+          <div class="row" id="yearRow" hidden><span class="zh" data-i="withYear">含年份</span><label class="switch"><input type="checkbox" id="mineYear" checked aria-label="含年份"><span></span></label></div>
+          <p class="hint" id="yearHint" hidden></p>
+          <button class="btn primary" type="submit" data-i="make">生成</button>
+        </form>
+        <div class="big-name" id="mineName">「像素潮」的海</div>
+        <div class="code" id="mineCode">SH-000-0000</div>
+        <p id="mineExplain"></p>
+        <div class="cta"><button class="btn primary" id="mineOpen" type="button" data-i="openEditor">在编辑器里打开</button></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="sec" aria-labelledby="catsTitle">
+    <div class="sec-head">
+      <h2 id="catsTitle" data-i="catsTitle">六类风景</h2>
+      <p data-i="catsNote">36 个画面，同一种画风。按住卡片看它动起来。</p>
+    </div>
+    <div class="cats" id="catGrid"></div>
+  </section>
+</main>
+
+<footer>
+  <span class="brand">PIXTIDES</span>
+  <span data-i="foot">代码 MIT · 生成的图归你，可商用 · 字体 Fusion Pixel / Silkscreen（OFL）</span>
+</footer>
+
+<div class="sheet" id="sheet" hidden>
+  <div class="sheet-card" role="dialog" aria-modal="true" aria-labelledby="exTitle">
+    <div class="sheet-head">
+      <h2 id="exTitle" data-i="exTitle">导出</h2>
+      <button class="btn icon" id="closeExport" type="button" aria-label="关闭">X</button>
+    </div>
+    <div class="ex-preview" id="exPreviewBox"><canvas id="exPreview"></canvas></div>
+    <div class="group">
+      <div class="label"><span data-i="res">分辨率</span><output class="ex-size" id="exSize">3840 × 3840</output></div>
+      <div class="chips five" id="tierChips"></div>
+    </div>
+    <div class="group">
+      <div class="label"><span data-i="shape">形状</span></div>
+      <div class="chips three" id="shapeChips">
+        <button class="chip zhc" type="button" data-v="square" data-i="square">方</button>
+        <button class="chip zhc" type="button" data-v="circle" data-i="circle">圆形</button>
+        <button class="chip zhc" type="button" data-v="round" data-i="rounded">圆角</button>
+      </div>
+      <div class="row"><span class="zh" data-i="safe">安全区参考线</span><label class="switch"><input type="checkbox" id="safe" aria-label="安全区"><span></span></label></div>
+    </div>
+    <div class="group">
+      <div class="label"><span data-i="format">格式</span></div>
+      <div class="chips two" id="fmtChips">
+        <button class="chip" type="button" data-v="png">PNG</button>
+        <button class="chip" type="button" data-v="svg">SVG</button>
+      </div>
+      <p class="hint" id="fmtHint"></p>
+      <p class="hint" id="cellHint" hidden></p>
+    </div>
+    <button class="btn primary" id="doExport" type="button" style="min-height:52px" data-i="download">下载</button>
+  </div>
+</div>
+<div class="sheet" id="calSheet" hidden>
+  <div class="sheet-card" role="dialog" aria-modal="true" aria-labelledby="calTitle">
+    <div class="sheet-head">
+      <h2 id="calTitle" data-i="calTitle">今日一张 · 日历</h2>
+      <button class="btn icon" id="closeCal" type="button" aria-label="关闭">X</button>
+    </div>
+    <p class="hint" data-i="calNote">每天打开就收集当天那张。点任意一天，第一屏换成那天的海，浪仍和全世界同步。</p>
+    <div class="cal">
+      <div class="cal-head">
+        <button class="btn icon" id="calPrev" type="button" aria-label="上个月">&lt;</button>
+        <b id="calMonth">2026-10</b>
+        <button class="btn icon" id="calNext" type="button" aria-label="下个月">&gt;</button>
+      </div>
+      <div class="cal-grid" id="calGrid"></div>
+      <p class="hint" id="calCount">已收集 1 天</p>
+    </div>
+  </div>
+</div>
+<div class="result" id="result" hidden>
+  <div class="rcard">
+    <img id="resultImg" alt="">
+    <p data-i="longPress">长按图片保存到相册。</p>
+    <button class="btn" id="resultClose" type="button" data-i="close">关闭</button>
+  </div>
+</div>
+<div id="toast" role="status"></div>
+
+<script>
+import '../client/app';
+</script>
+</body>
+</html>

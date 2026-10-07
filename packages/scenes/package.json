@@ -1,0 +1,10 @@
+{
+  "name": "@pixtides/scenes",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "像素潮场景定义：构图、配色锚点、时段反光色",
+  "exports": { ".": "./src/index.ts" },
+  "sideEffects": false,
+  "dependencies": { "@pixtides/engine": "workspace:*" }
+}
