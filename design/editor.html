@@ -1,0 +1,704 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>像素潮编辑器</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Silkscreen&display=swap">
+<style>
+/* 布局：手机上画布吸顶、控件抽屉在下方滚动；桌面上左画布右面板。
+   界面色由 JS 按当前画面最深色阶推出（单一深色外观）。 */
+:root{
+  --bg:#02081B; --panel:#071125; --raise:#121D35; --line:#2A3754;
+  --fg:#ECF2FE; --muted:#99A5BC; --accent:#A9FBFD; --ink:#02081B; --deep:#0009F1;
+  --f-pixel:"Silkscreen","PixTides Pixel",ui-monospace,monospace;
+  --f-zh:"PixTides Pixel","Silkscreen",ui-monospace,monospace;
+  --f-body:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Noto Sans SC","Microsoft YaHei",sans-serif;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{margin:0;background:var(--bg);color:var(--fg)}
+body{font-family:var(--f-body);font-size:14px;line-height:1.5;-webkit-font-smoothing:antialiased;transition:background-color .4s}
+button,input{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.zh{font-family:var(--f-zh)}
+html[lang=en] .zh{font-family:var(--f-pixel)}
+
+/* ---------- 顶栏 ---------- */
+.top{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:calc(env(safe-area-inset-top,0px) + 8px) 16px 8px;background:var(--bg)}
+.home{display:inline-flex;align-items:baseline;gap:8px;text-decoration:none;color:var(--fg)}
+.home .zh{font-size:24px;line-height:1}
+.home .en{font-family:var(--f-pixel);font-size:16px;color:var(--accent)}
+html[lang=en] .home .zh{display:none}
+
+/* ---------- 按钮与控件：方角、2px 粗边 ---------- */
+.btn{appearance:none;display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:44px;padding:0 14px;cursor:pointer;
+  font-family:var(--f-zh);font-size:12px;letter-spacing:.06em;text-decoration:none;
+  background:var(--raise);color:var(--fg);border:2px solid var(--line);border-radius:0;box-shadow:3px 3px 0 var(--ink)}
+html[lang=en] .btn{font-family:var(--f-pixel);font-size:16px;letter-spacing:0}
+.btn:active{transform:translate(2px,2px);box-shadow:1px 1px 0 var(--ink)}
+.btn.primary{background:var(--accent);color:var(--ink);border-color:var(--accent)}
+.btn.icon{width:44px;padding:0;font-family:var(--f-pixel);font-size:16px}
+.btn .k{font-family:var(--f-pixel);font-size:16px}
+.btn[disabled]{opacity:.4;cursor:not-allowed}
+.chip{appearance:none;min-height:40px;padding:0 6px;cursor:pointer;border-radius:0;
+  font-family:var(--f-pixel);font-size:16px;background:var(--bg);color:var(--muted);border:2px solid var(--line)}
+.chip[aria-pressed=true]{color:var(--ink);background:var(--accent);border-color:var(--accent)}
+.chip[disabled]{opacity:.35;cursor:not-allowed}
+.chip .note{display:block;font-size:12px;line-height:1;font-family:var(--f-pixel)}
+.chips.five .chip{font-size:12px;padding:0 2px;line-height:1.3}
+.chips{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}
+.chips.five{grid-template-columns:repeat(5,minmax(0,1fr))}
+.chips.three{grid-template-columns:repeat(3,minmax(0,1fr))}
+.chips.two{grid-template-columns:repeat(2,minmax(0,1fr))}
+.chip.zhc{font-family:var(--f-zh);font-size:12px}
+html[lang=en] .chip.zhc{font-family:var(--f-pixel);font-size:16px}
+.ratio{display:grid;justify-items:center;gap:4px;padding:6px 2px;min-height:58px}
+.ratio i{display:block;height:20px;border:2px solid currentColor;max-width:100%}
+.ratio span{font-size:12px;line-height:1;font-family:var(--f-pixel)}
+
+input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:28px;margin:0;background:none;cursor:pointer}
+input[type=range]::-webkit-slider-runnable-track{height:8px;background:var(--bg);border:2px solid var(--line)}
+input[type=range]::-moz-range-track{height:4px;background:var(--bg);border:2px solid var(--line)}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:20px;height:20px;margin-top:-8px;background:var(--accent);border:2px solid var(--ink);border-radius:0}
+input[type=range]::-moz-range-thumb{width:16px;height:16px;background:var(--accent);border:2px solid var(--ink);border-radius:0}
+input[type=range]:disabled{opacity:.35}
+
+.switch{position:relative;display:inline-block;width:48px;height:28px;flex:none}
+.switch input{position:absolute;inset:0;opacity:0;margin:0;cursor:pointer}
+.switch span{position:absolute;inset:0;background:var(--bg);border:2px solid var(--line);pointer-events:none}
+.switch span::after{content:"";position:absolute;top:4px;left:4px;width:16px;height:16px;background:var(--muted)}
+.switch input:checked+span{border-color:var(--accent)}
+.switch input:checked+span::after{left:24px;background:var(--accent)}
+.switch input:focus-visible+span{outline:2px solid var(--accent);outline-offset:2px}
+
+/* ---------- 版面 ---------- */
+.app{display:grid;grid-template-columns:minmax(0,1fr)}
+.stage{position:sticky;top:0;z-index:3;background:var(--bg);padding:0 16px 10px;display:grid;gap:10px;border-bottom:2px solid var(--line)}
+.canvas-wrap{display:grid;place-items:center;height:min(46svh,calc(100vw - 32px));min-height:220px;touch-action:pan-y;user-select:none;-webkit-user-select:none}
+.canvas-box{position:relative;max-width:100%;max-height:100%;box-shadow:0 0 0 2px var(--line),4px 4px 0 2px var(--ink)}
+#view{display:block;width:100%;height:100%;image-rendering:pixelated}
+.swipe-hint{position:absolute;left:50%;bottom:8px;transform:translateX(-50%);white-space:nowrap;font-family:var(--f-zh);font-size:12px;color:var(--fg);background:var(--bg);padding:2px 8px;pointer-events:none}
+html[lang=en] .swipe-hint{font-family:var(--f-pixel);font-size:12px}
+.namebar{display:flex;align-items:center;gap:8px;width:100%;max-width:720px;justify-self:center}
+.name{flex:1;min-width:0;display:grid;gap:2px;text-align:center}
+.name b{font-family:var(--f-zh);font-weight:400;font-size:24px;line-height:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+html[lang=en] .name b{font-family:var(--f-pixel);font-size:16px;line-height:1.5}
+.name small{font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-variant-numeric:tabular-nums}
+
+.drawer{padding:16px 16px calc(28px + env(safe-area-inset-bottom,0px));display:grid;gap:22px;min-width:0}
+.group{display:grid;gap:10px;min-width:0}
+.label{display:flex;justify-content:space-between;align-items:baseline;gap:8px;font-family:var(--f-zh);font-size:12px;letter-spacing:.06em;color:var(--muted)}
+html[lang=en] .label{font-family:var(--f-body);font-size:12px;letter-spacing:.08em;text-transform:uppercase}
+.label output{font-family:var(--f-pixel);font-size:16px;color:var(--fg);letter-spacing:0;text-transform:none;font-variant-numeric:tabular-nums}
+
+.scenes{display:grid;grid-auto-flow:column;grid-auto-columns:72px;gap:8px;overflow-x:auto;padding:2px 2px 8px;scroll-snap-type:x proximity;scrollbar-width:thin}
+.scene{appearance:none;display:grid;gap:4px;padding:0;background:none;border:0;cursor:pointer;scroll-snap-align:start;text-align:center}
+.scene canvas{width:72px;height:72px;display:block;image-rendering:pixelated;border:2px solid var(--line)}
+.scene span{font-family:var(--f-zh);font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+html[lang=en] .scene span{font-family:var(--f-body);font-size:11px}
+.scene[aria-pressed=true] canvas{border-color:var(--accent)}
+.scene[aria-pressed=true] span{color:var(--fg)}
+
+.avatars{display:flex;gap:16px;align-items:flex-end}
+.av{display:grid;gap:6px;justify-items:center}
+.av canvas{width:72px;height:72px;display:block;image-rendering:auto}
+.av .c{border-radius:50%}
+.av .r{border-radius:16px}
+.av span{font-family:var(--f-zh);font-size:12px;color:var(--muted)}
+html[lang=en] .av span{font-family:var(--f-body);font-size:11px}
+.av-tiny canvas{width:36px;height:36px}
+
+details.more{border:2px solid var(--line);background:var(--panel)}
+details.more summary{list-style:none;cursor:pointer;display:flex;justify-content:space-between;align-items:center;min-height:44px;padding:0 12px;font-family:var(--f-zh);font-size:12px;letter-spacing:.06em}
+html[lang=en] details.more summary{font-family:var(--f-pixel);font-size:16px;letter-spacing:0}
+details.more summary::-webkit-details-marker{display:none}
+details.more summary::after{content:"+";font-family:var(--f-pixel);font-size:16px}
+details.more[open] summary::after{content:"-"}
+.more-body{display:grid;gap:18px;padding:4px 12px 16px}
+.row{display:flex;justify-content:space-between;align-items:center;gap:12px;font-size:13px}
+.row .zh{font-size:12px}
+.hint{margin:0;font-size:12px;color:var(--muted)}
+
+.export-cta{display:grid;grid-template-columns:minmax(0,1fr);gap:8px}
+
+@media (min-width:900px){
+  .app{grid-template-columns:minmax(0,1fr) 380px;min-height:calc(100vh - 60px)}
+  .stage{position:sticky;top:0;height:calc(100vh - 60px);align-content:center;border-bottom:0;padding:16px 32px 24px}
+  .canvas-wrap{height:calc(100vh - 180px)}
+  .drawer{border-left:2px solid var(--line);background:var(--panel);max-height:calc(100vh - 60px);overflow-y:auto;position:sticky;top:0}
+  .swipe-hint{display:none}
+}
+
+/* ---------- 导出面板 ---------- */
+.sheet{position:fixed;inset:0;z-index:20;display:grid;align-items:end;justify-items:center;background:rgba(0,0,0,.6)}
+.sheet-card{width:100%;max-width:520px;max-height:92svh;overflow-y:auto;background:var(--panel);border:2px solid var(--line);border-bottom:0;
+  padding:16px 16px calc(20px + env(safe-area-inset-bottom,0px));display:grid;gap:18px}
+@media (min-width:900px){.sheet{align-items:center}.sheet-card{border-bottom:2px solid var(--line)}}
+.sheet-head{display:flex;justify-content:space-between;align-items:center}
+.sheet-head h2{margin:0;font-family:var(--f-zh);font-weight:400;font-size:24px}
+html[lang=en] .sheet-head h2{font-family:var(--f-pixel)}
+.ex-preview{display:grid;place-items:center;height:180px;background:repeating-conic-gradient(var(--raise) 0 25%,var(--bg) 0 50%) 0 0/16px 16px;border:2px solid var(--line);position:relative}
+.ex-preview canvas{max-width:100%;max-height:164px;display:block;image-rendering:pixelated}
+.ex-size{font-family:var(--f-pixel);font-size:16px;font-variant-numeric:tabular-nums}
+.safe-ring{position:absolute;border:2px dashed var(--fg);border-radius:50%;pointer-events:none}
+
+.result{position:fixed;inset:0;z-index:30;display:grid;place-items:center;padding:16px;background:rgba(0,0,0,.85)}
+.result .card{display:grid;gap:12px;justify-items:center;max-width:min(92vw,520px);text-align:center}
+.result img{max-width:100%;max-height:70svh;image-rendering:pixelated;background:repeating-conic-gradient(#333 0 25%,#222 0 50%) 0 0/16px 16px}
+
+#toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:40;max-width:calc(100vw - 32px);
+  background:var(--fg);color:var(--ink);padding:8px 14px;font-family:var(--f-zh);font-size:12px;border:2px solid var(--ink);opacity:0;pointer-events:none;transition:opacity .2s}
+html[lang=en] #toast{font-family:var(--f-body);font-size:13px}
+#toast.show{opacity:1}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <a class="home" href="home.html"><span class="zh">像素潮</span><span class="en">PIXTIDES</span></a>
+  <button class="chip" id="lang" type="button" style="min-width:48px">EN</button>
+</header>
+
+<div class="app">
+  <section class="stage" aria-label="画布">
+    <div class="canvas-wrap" id="wrap">
+      <div class="canvas-box" id="box">
+        <canvas id="view" aria-label="当前画面"></canvas>
+        <span class="swipe-hint" id="swipeHint" data-i="swipe">← 左右滑动换画面 →</span>
+      </div>
+    </div>
+    <div class="namebar">
+      <button class="btn icon" id="prev" type="button" aria-label="上一个画面">&lt;</button>
+      <div class="name"><b id="name">浅滩</b><small id="code">sh-000000 · 32×32</small></div>
+      <button class="btn icon" id="next" type="button" aria-label="下一个画面">&gt;</button>
+      <button class="btn primary" id="dice" type="button"><span data-i="dice">换一张</span><span class="k" aria-hidden="true">⚄</span></button>
+    </div>
+  </section>
+
+  <aside class="drawer" aria-label="控件">
+    <div class="group">
+      <div class="label"><span data-i="scene">画面 · 海与水</span><output id="sceneOut">1 / 9</output></div>
+      <div class="scenes" id="scenes"></div>
+    </div>
+
+    <div class="group">
+      <div class="label"><span data-i="grain">像素粒度</span><output id="gridOut">32</output></div>
+      <div class="chips" id="gridChips"></div>
+    </div>
+
+    <div class="group">
+      <div class="label"><span data-i="ratio">画面比例</span><output id="ratioOut">1:1</output></div>
+      <div class="chips" id="ratioChips"></div>
+    </div>
+
+    <div class="group">
+      <div class="label"><span data-i="palette">配色</span><output id="hueOut">0°</output></div>
+      <div class="chips three" id="variantChips">
+        <button class="chip zhc" type="button" data-v="base" data-i="vBase">原色</button>
+        <button class="chip zhc" type="button" data-v="dawn" data-i="vDawn">早</button>
+        <button class="chip zhc" type="button" data-v="dusk" data-i="vDusk">晚</button>
+      </div>
+      <label class="row" for="hue"><span class="zh" data-i="hue">色相整体旋转</span></label>
+      <input type="range" id="hue" min="0" max="359" step="1" value="0">
+    </div>
+
+    <div class="group">
+      <div class="label"><span data-i="avatar">头像预览</span></div>
+      <div class="avatars">
+        <div class="av"><canvas class="c" id="avC" width="216" height="216"></canvas><span data-i="circle">圆形</span></div>
+        <div class="av"><canvas class="r" id="avR" width="216" height="216"></canvas><span data-i="rounded">圆角</span></div>
+        <div class="av av-tiny"><canvas class="c" id="avS" width="108" height="108"></canvas><span>36 px</span></div>
+      </div>
+    </div>
+
+    <details class="more" id="more">
+      <summary data-i="more">更多</summary>
+      <div class="more-body">
+        <div class="group">
+          <label class="label" for="angle"><span data-i="angle">渐变方向</span><output id="angleOut">94°</output></label>
+          <input type="range" id="angle" min="0" max="359" step="1" value="94">
+        </div>
+        <div class="group">
+          <label class="label" for="amp"><span data-i="amp">浪线起伏</span><output id="ampOut">1.0</output></label>
+          <input type="range" id="amp" min="0" max="2" step="0.1" value="1">
+        </div>
+        <div class="group">
+          <label class="label" for="terrace"><span data-i="terrace">平台长短</span><output id="terraceOut">1.0</output></label>
+          <input type="range" id="terrace" min="0.4" max="2.5" step="0.1" value="1">
+        </div>
+        <div class="group">
+          <label class="label" for="bands"><span data-i="bands">色带数量</span><output id="bandsOut">6</output></label>
+          <input type="range" id="bands" min="4" max="10" step="1" value="6">
+        </div>
+        <div class="group">
+          <label class="label" for="dots"><span data-i="dots">散落方块 · 密度</span><output id="dotsOut">1.0</output></label>
+          <input type="range" id="dots" min="0" max="3" step="0.1" value="1">
+        </div>
+        <div class="group">
+          <label class="label" for="dotMax"><span data-i="dotMax">散落方块 · 最大</span><output id="dotMaxOut">2.5</output></label>
+          <input type="range" id="dotMax" min="2" max="5" step="1" value="5">
+        </div>
+        <div class="group">
+          <label class="label" for="pair"><span data-i="pair">散落方块 · 成对比例</span><output id="pairOut">22%</output></label>
+          <input type="range" id="pair" min="0" max="0.6" step="0.02" value="0.22">
+        </div>
+        <div class="row" id="silRow">
+          <span class="zh" data-i="sil">剪影（月亮）</span>
+          <span style="display:flex;gap:10px;align-items:center">
+            <button class="btn" id="silNext" type="button" style="min-height:36px" data-i="silNext">换一个</button>
+            <label class="switch"><input type="checkbox" id="sil" checked aria-label="剪影"><span></span></label>
+          </span>
+        </div>
+        <div class="row"><span class="zh" data-i="invert">深浅反转</span><label class="switch"><input type="checkbox" id="invert" aria-label="深浅反转"><span></span></label></div>
+        <div class="row"><span class="zh" data-i="motion">画布动效</span><label class="switch"><input type="checkbox" id="motion" checked aria-label="画布动效"><span></span></label></div>
+      </div>
+    </details>
+
+    <div class="export-cta">
+      <button class="btn primary" id="openExport" type="button" style="min-height:52px" data-i="export">导出 PNG / SVG</button>
+      <p class="hint" data-i="exportHint">导出的是这张图的静止画面，与编号一一对应。</p>
+    </div>
+  </aside>
+</div>
+
+<div class="sheet" id="sheet" hidden>
+  <div class="sheet-card" role="dialog" aria-modal="true" aria-labelledby="exTitle">
+    <div class="sheet-head">
+      <h2 id="exTitle" data-i="exTitle">导出</h2>
+      <button class="btn icon" id="closeExport" type="button" aria-label="关闭">X</button>
+    </div>
+    <div class="ex-preview" id="exPreviewBox"><canvas id="exPreview"></canvas></div>
+    <div class="group">
+      <div class="label"><span data-i="res">分辨率</span><output class="ex-size" id="exSize">3840 × 3840</output></div>
+      <div class="chips five" id="tierChips"></div>
+    </div>
+    <div class="group">
+      <div class="label"><span data-i="shape">形状</span></div>
+      <div class="chips three" id="shapeChips">
+        <button class="chip zhc" type="button" data-v="square" data-i="square">方</button>
+        <button class="chip zhc" type="button" data-v="circle" data-i="circle">圆</button>
+        <button class="chip zhc" type="button" data-v="round" data-i="rounded">圆角</button>
+      </div>
+      <div class="row"><span class="zh" data-i="safe">安全区参考线</span><label class="switch"><input type="checkbox" id="safe" aria-label="安全区"><span></span></label></div>
+    </div>
+    <div class="group">
+      <div class="label"><span data-i="format">格式</span></div>
+      <div class="chips two" id="fmtChips">
+        <button class="chip" type="button" data-v="png">PNG</button>
+        <button class="chip" type="button" data-v="svg">SVG</button>
+      </div>
+      <p class="hint" id="fmtHint"></p>
+    </div>
+    <button class="btn primary" id="doExport" type="button" style="min-height:52px" data-i="download">下载</button>
+  </div>
+</div>
+
+<div class="result" id="result" hidden>
+  <div class="card">
+    <img id="resultImg" alt="">
+    <p class="hint" data-i="longPress">长按图片保存到相册。</p>
+    <button class="btn" id="resultClose" type="button" data-i="close">关闭</button>
+  </div>
+</div>
+<div id="toast" role="status"></div>
+
+<script src="proto-engine.js"></script>
+<script>
+(function () {
+  'use strict';
+  const P = window.PixTides;
+  const $ = (id) => document.getElementById(id);
+
+  // ---------- 文案 ----------
+  const T = {
+    zh: {
+      swipe: '← 左右滑动换画面 →', dice: '换一张', scene: '画面 · 海与水', grain: '像素粒度', ratio: '画面比例', palette: '配色',
+      vBase: '原色', vDawn: '早', vDusk: '晚', hue: '色相整体旋转', avatar: '头像预览', circle: '圆形', rounded: '圆角', square: '方',
+      more: '更多', angle: '渐变方向', amp: '浪线起伏', terrace: '平台长短', bands: '色带数量', dots: '散落方块 · 密度',
+      dotMax: '散落方块 · 最大', pair: '散落方块 · 成对比例', sil: '剪影（月亮）', silNext: '换一个', invert: '深浅反转', motion: '画布动效',
+      export: '导出 PNG / SVG', exportHint: '导出的是这张图的静止画面，与编号一一对应。', exTitle: '导出', res: '分辨率', shape: '形状',
+      safe: '安全区参考线', format: '格式', download: '下载', longPress: '长按图片保存到相册。', close: '关闭',
+      radial: '径向', cells: '格', lang: 'EN', prev: '上一个画面', next: '下一个画面',
+      pngHint: 'PNG 设计稿阶段用 canvas 编码，最高 4K；5K / 8K 在 V0 改用索引色编码器。', svgHint: 'SVG 同色合并成长矩形，任意放大都清晰。',
+      toCircle: '圆形头像用 1:1，已切到 1:1', saved: '已保存 ', declined: '已取消保存', busy: '已有一个保存窗口，请先处理',
+      failed: '这个尺寸生成失败，换小一档试试', making: '正在生成…',
+    },
+    en: {
+      swipe: '← Swipe for another scene →', dice: 'Reroll', scene: 'Scene · Sea & Water', grain: 'Pixel grain', ratio: 'Aspect ratio', palette: 'Colors',
+      vBase: 'Base', vDawn: 'Dawn', vDusk: 'Dusk', hue: 'Rotate hue', avatar: 'Avatar preview', circle: 'Circle', rounded: 'Rounded', square: 'Square',
+      more: 'More', angle: 'Direction', amp: 'Wave height', terrace: 'Terrace length', bands: 'Bands', dots: 'Scatter · density',
+      dotMax: 'Scatter · max size', pair: 'Scatter · pairs', sil: 'Silhouette (moon)', silNext: 'Another', invert: 'Invert light/dark', motion: 'Canvas motion',
+      export: 'Export PNG / SVG', exportHint: 'Exports the still frame that matches this picture code.', exTitle: 'Export', res: 'Resolution', shape: 'Shape',
+      safe: 'Safe-area guide', format: 'Format', download: 'Download', longPress: 'Press and hold the image to save it.', close: 'Close',
+      radial: 'radial', cells: 'cells', lang: '中', prev: 'Previous scene', next: 'Next scene',
+      pngHint: 'Prototype PNG uses canvas, up to 4K. 5K / 8K come with the indexed-color encoder in V0.', svgHint: 'SVG merges same-color runs into long rects; sharp at any size.',
+      toCircle: 'Circle avatars are 1:1, switched to 1:1', saved: 'Saved ', declined: 'Save canceled', busy: 'A save prompt is already open',
+      failed: 'That size failed, try a smaller one', making: 'Rendering…',
+    },
+  };
+  let lang = 'zh';
+  try { lang = localStorage.getItem('pt-lang') || (navigator.language.startsWith('zh') ? 'zh' : 'en'); } catch (e) {}
+  const t = (k) => T[lang][k];
+
+  // ---------- 状态 ----------
+  const SEA = P.SCENES.filter((s) => s.cat === 'sea');
+  const GRIDS = [12, 16, 24, 32, 48, 64, 96, 128];
+  const RATIOS = [
+    { id: '1x1', r: [1, 1], label: '1:1' }, { id: '9x16', r: [9, 16], label: '9:16' }, { id: '9x19_5', r: [9, 19.5], label: '9:19.5' },
+    { id: '16x9', r: [16, 9], label: '16:9' }, { id: '16x10', r: [16, 10], label: '16:10' }, { id: '21x9', r: [21, 9], label: '21:9' },
+    { id: '3x4', r: [3, 4], label: '3:4' }, { id: '4x5', r: [4, 5], label: '4:5' },
+  ];
+  const S = {
+    scene: SEA[0], seed: (Math.random() * 1e9) >>> 0, grid: 32, ratio: RATIOS[0], variant: 'base', hue: 0,
+    angle: null, amp: null, terrace: 1, bands: null, dots: null, dotMax: 5, pair: 0.22, silhouette: true, silSeed: 0, invert: false,
+    motion: true, tier: '4K', shape: 'square', fmt: 'png', safe: false,
+  };
+  // 从首页带来的 #场景.种子.比例
+  (function readHash() {
+    const parts = location.hash.replace('#', '').split('.');
+    const sc = SEA.find((s) => s.id === parts[0]);
+    if (sc) S.scene = sc;
+    if (parts[1] && /^\d+$/.test(parts[1])) S.seed = +parts[1] >>> 0;
+    const r = RATIOS.find((x) => x.id === parts[2]);
+    if (r) S.ratio = r;
+  })();
+
+  function simOpts() {
+    return {
+      grid: S.grid, ratio: S.ratio.r, seed: S.seed, variant: S.variant, hue: S.hue, angle: S.angle, amp: S.amp, terrace: S.terrace,
+      bands: S.bands, dots: S.dots, dotMax: S.dotMax, pair: S.pair, silhouette: S.silhouette, silSeed: S.silSeed, invert: S.invert,
+    };
+  }
+
+  // ---------- 画布 ----------
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)');
+  const view = new P.View($('view'));
+  let sim = null;
+
+  function fitBox() {
+    const wrap = $('wrap'), box = $('box');
+    const [a, b] = S.ratio.r;
+    const W = wrap.clientWidth, H = wrap.clientHeight;
+    let w = W, h = (W * b) / a;
+    if (h > H) { h = H; w = (H * a) / b; }
+    box.style.width = Math.floor(w) + 'px';
+    box.style.height = Math.floor(h) + 'px';
+    return [Math.floor(w), Math.floor(h)];
+  }
+
+  function rebuild(transition) {
+    const [w, h] = fitBox(), dpr = Math.min(3, window.devicePixelRatio || 1);
+    const next = P.create(S.scene, simOpts());
+    const pw = Math.round(w * dpr), ph = Math.round(h * dpr);
+    const canDissolve = transition && sim && sim.W === next.W && sim.H === next.H && view.w === pw && view.h === ph && !reduce.matches;
+    if (canDissolve) view.dissolve(transition);
+    sim = next;
+    view.attach(sim, pw, ph);
+    view.render();
+    drawAvatars();
+    applyUi();
+    syncUi();
+    kick();
+  }
+
+  function applyUi() {
+    const ui = P.uiTokens(sim.pal.slice(0, sim.L)), st = document.documentElement.style;
+    for (const k of ['bg', 'panel', 'raise', 'line', 'fg', 'muted', 'accent', 'ink', 'deep']) st.setProperty('--' + k, ui[k]);
+  }
+
+  // 头像预览：取画面正中的正方形
+  function drawAvatars() {
+    const src = $('view'), sw = src.width, sh = src.height, s = Math.min(sw, sh);
+    const sx = (sw - s) / 2, sy = (sh - s) / 2;
+    for (const id of ['avC', 'avR', 'avS']) {
+      const cv = $(id), ctx = cv.getContext('2d');
+      ctx.imageSmoothingEnabled = true;
+      ctx.imageSmoothingQuality = 'high';
+      ctx.clearRect(0, 0, cv.width, cv.height);
+      ctx.drawImage(src, sx, sy, s, s, 0, 0, cv.width, cv.height);
+    }
+  }
+
+  // 动画循环：10 fps；溶解期间每帧刷新；页面不可见或减少动态效果时停
+  const FPS = 10;
+  let raf = 0, last = 0, acc = 0;
+  const animOn = () => S.motion && !reduce.matches;
+  function frame(now) {
+    raf = 0;
+    if (document.hidden) return;
+    const dt = Math.min(0.25, (now - (last || now)) / 1000);
+    last = now;
+    let dirty = view.busy;
+    if (animOn()) {
+      acc += dt;
+      if (acc >= 1 / FPS) { acc %= 1 / FPS; sim.step(1 / FPS); dirty = true; }
+    }
+    if (dirty) { view.render(); drawAvatars(); }
+    if (animOn() || view.busy) raf = requestAnimationFrame(frame);
+  }
+  function kick() { if (!raf && !document.hidden) { last = 0; raf = requestAnimationFrame(frame); } }
+  document.addEventListener('visibilitychange', kick);
+  reduce.addEventListener?.('change', () => { syncUi(); kick(); });
+
+  // ---------- 控件 ----------
+  function buildChips() {
+    $('gridChips').innerHTML = GRIDS.map((g) => `<button class="chip" type="button" data-v="${g}">${g}</button>`).join('');
+    $('ratioChips').innerHTML = RATIOS.map((r) => {
+      const k = 20 / Math.max(r.r[0], r.r[1]);
+      return `<button class="chip ratio" type="button" data-v="${r.id}" aria-label="${r.label}"><i style="width:${Math.round(r.r[0] * k + 4)}px;height:${Math.round(r.r[1] * k + 4)}px"></i><span>${r.label}</span></button>`;
+    }).join('');
+    $('tierChips').innerHTML = P.TIERS.map((x) => `<button class="chip" type="button" data-v="${x.id}">${x.id}</button>`).join('');
+    const sc = $('scenes');
+    sc.textContent = '';
+    SEA.forEach((s) => {
+      const b = document.createElement('button');
+      b.type = 'button'; b.className = 'scene'; b.dataset.v = s.id;
+      const cv = document.createElement('canvas');
+      cv.width = cv.height = 144;
+      const sp = document.createElement('span');
+      b.append(cv, sp);
+      sc.append(b);
+      const m = P.create(s, { grid: 16, seed: P.hashStr(s.id) });
+      P.paint(cv.getContext('2d'), m, 144, 144);
+    });
+  }
+
+  function press(container, val) {
+    container.querySelectorAll('[data-v]').forEach((b) => b.setAttribute('aria-pressed', b.dataset.v === String(val)));
+  }
+
+  function syncUi() {
+    const sc = S.scene, idx = SEA.indexOf(sc);
+    $('name').textContent = sc.name[lang];
+    $('code').textContent = P.shortCode(sc, S.seed) + ' · ' + sim.W / 2 + '×' + sim.H / 2;
+    $('sceneOut').textContent = idx + 1 + ' / ' + SEA.length;
+    press($('scenes'), sc.id);
+    document.querySelectorAll('#scenes .scene span').forEach((sp, i) => { sp.textContent = SEA[i].name[lang]; });
+    press($('gridChips'), S.grid); $('gridOut').textContent = S.grid + ' ' + t('cells');
+    press($('ratioChips'), S.ratio.id); $('ratioOut').textContent = S.ratio.label;
+    press($('variantChips'), S.variant);
+    $('hue').value = S.hue; $('hueOut').textContent = S.hue + '°';
+    const radial = sc.layout === 'radial';
+    const ang = S.angle != null ? S.angle : sc.angle;
+    $('angle').value = ang; $('angle').disabled = radial;
+    $('angleOut').textContent = radial ? t('radial') : ang + '°';
+    const amp = S.amp != null ? S.amp : sc.amp;
+    $('amp').value = amp; $('ampOut').textContent = (+amp).toFixed(1);
+    $('terrace').value = S.terrace; $('terraceOut').textContent = (+S.terrace).toFixed(1);
+    const bands = S.bands || sc.steps;
+    $('bands').value = bands; $('bandsOut').textContent = bands;
+    const dots = S.dots != null ? S.dots : sc.dots;
+    $('dots').value = dots; $('dotsOut').textContent = (+dots).toFixed(1);
+    $('dotMax').value = S.dotMax; $('dotMaxOut').textContent = (S.dotMax / 2).toFixed(1) + ' ' + t('cells');
+    $('pair').value = S.pair; $('pairOut').textContent = Math.round(S.pair * 100) + '%';
+    $('silRow').hidden = sc.silhouette !== 'moon';
+    $('sil').checked = S.silhouette; $('silNext').disabled = !S.silhouette;
+    $('invert').checked = S.invert;
+    $('motion').checked = S.motion; $('motion').disabled = reduce.matches;
+    $('view').setAttribute('aria-label', sc.name[lang] + ' ' + P.shortCode(sc, S.seed));
+  }
+
+  function setScene(sc, dir) {
+    S.scene = sc;
+    S.angle = S.amp = S.bands = S.dots = null;
+    S.silSeed = 0;
+    rebuild(450);
+    const btn = $('scenes').querySelector(`[data-v="${sc.id}"]`);
+    btn && btn.scrollIntoView({ block: 'nearest', inline: 'nearest', behavior: reduce.matches ? 'auto' : 'smooth' });
+  }
+  const step = (d) => setScene(SEA[(SEA.indexOf(S.scene) + d + SEA.length) % SEA.length], d);
+
+  $('scenes').addEventListener('click', (e) => { const b = e.target.closest('.scene'); if (b) setScene(P.byId[b.dataset.v]); });
+  $('prev').addEventListener('click', () => step(-1));
+  $('next').addEventListener('click', () => step(1));
+  $('dice').addEventListener('click', () => { S.seed = (Math.random() * 1e9) >>> 0; S.silSeed = 0; rebuild(400); });
+  $('gridChips').addEventListener('click', (e) => { const b = e.target.closest('[data-v]'); if (b) { S.grid = +b.dataset.v; rebuild(); } });
+  $('ratioChips').addEventListener('click', (e) => { const b = e.target.closest('[data-v]'); if (b) { S.ratio = RATIOS.find((r) => r.id === b.dataset.v); rebuild(); } });
+  $('variantChips').addEventListener('click', (e) => { const b = e.target.closest('[data-v]'); if (b) { S.variant = b.dataset.v; rebuild(350); } });
+
+  // 滑块：拖动时只重建，不做溶解
+  const sliders = {
+    hue: (v) => (S.hue = +v), angle: (v) => (S.angle = +v), amp: (v) => (S.amp = +v), terrace: (v) => (S.terrace = +v),
+    bands: (v) => (S.bands = +v), dots: (v) => (S.dots = +v), dotMax: (v) => (S.dotMax = +v), pair: (v) => (S.pair = +v),
+  };
+  let pending = 0;
+  Object.keys(sliders).forEach((id) => {
+    $(id).addEventListener('input', (e) => {
+      sliders[id](e.target.value);
+      if (!pending) pending = requestAnimationFrame(() => { pending = 0; rebuild(); });
+    });
+  });
+  $('sil').addEventListener('change', (e) => { S.silhouette = e.target.checked; rebuild(); });
+  $('silNext').addEventListener('click', () => { S.silSeed++; rebuild(300); });
+  $('invert').addEventListener('change', (e) => { S.invert = e.target.checked; rebuild(400); });
+  $('motion').addEventListener('change', (e) => { S.motion = e.target.checked; if (!S.motion) rebuild(); kick(); });
+
+  // 左右滑动画布换画面
+  (function swipe() {
+    const el = $('wrap');
+    let x0 = 0, y0 = 0, id = null;
+    el.addEventListener('pointerdown', (e) => { id = e.pointerId; x0 = e.clientX; y0 = e.clientY; });
+    el.addEventListener('pointerup', (e) => {
+      if (e.pointerId !== id) return;
+      id = null;
+      const dx = e.clientX - x0, dy = e.clientY - y0;
+      if (Math.abs(dx) > 48 && Math.abs(dx) > Math.abs(dy) * 1.5) { step(dx < 0 ? 1 : -1); hideHint(); }
+    });
+    el.addEventListener('pointercancel', () => { id = null; });
+  })();
+  let hintShown = true;
+  function hideHint() { if (hintShown) { hintShown = false; $('swipeHint').hidden = true; } }
+  setTimeout(hideHint, 6000);
+
+  // 键盘左右键也能换
+  document.addEventListener('keydown', (e) => {
+    if (e.target.closest('input,button,summary') || !$('sheet').hidden) return;
+    if (e.key === 'ArrowRight') step(1);
+    if (e.key === 'ArrowLeft') step(-1);
+  });
+
+  // ---------- 导出 ----------
+  const MAX_PNG = 4096;
+  function exportDims() { return P.exportSize(S.tier, S.ratio.r); }
+  function pngAllowed(tier) { const [w, h] = P.exportSize(tier, S.ratio.r); return Math.max(w, h) <= MAX_PNG; }
+  function syncExport() {
+    press($('tierChips'), S.tier);
+    $('tierChips').querySelectorAll('[data-v]').forEach((b) => {
+      const ok = S.fmt === 'svg' || pngAllowed(b.dataset.v);
+      b.disabled = !ok;
+      b.innerHTML = b.dataset.v + (ok ? '' : '<span class="note">V0</span>');
+    });
+    press($('shapeChips'), S.shape);
+    press($('fmtChips'), S.fmt);
+    $('safe').checked = S.safe;
+    const [w, h] = exportDims();
+    $('exSize').textContent = w + ' × ' + h;
+    $('fmtHint').textContent = S.fmt === 'png' ? t('pngHint') : t('svgHint');
+    // 预览
+    const box = $('exPreviewBox'), pv = $('exPreview');
+    const m = P.create(S.scene, simOpts());
+    const k = 164 / Math.max(w, h), pw = Math.round(w * k * 2), ph = Math.round(h * k * 2);
+    const c = P.toCanvas(m, pw, ph, S.shape);
+    pv.width = pw; pv.height = ph;
+    pv.style.width = pw / 2 + 'px'; pv.style.height = ph / 2 + 'px';
+    pv.getContext('2d').clearRect(0, 0, pw, ph);
+    pv.getContext('2d').drawImage(c, 0, 0);
+    box.querySelector('.safe-ring')?.remove();
+    if (S.safe) {
+      const ring = document.createElement('div'), d = Math.min(pw, ph) / 2 * 0.8;
+      ring.className = 'safe-ring';
+      Object.assign(ring.style, { width: d + 'px', height: d + 'px', left: `calc(50% - ${d / 2}px)`, top: `calc(50% - ${d / 2}px)` });
+      box.append(ring);
+    }
+  }
+  function openExport() {
+    if (S.fmt === 'png' && !pngAllowed(S.tier)) S.tier = '4K';
+    $('sheet').hidden = false;
+    syncExport();
+    $('closeExport').focus();
+  }
+  function closeExport() { $('sheet').hidden = true; $('openExport').focus(); }
+  $('openExport').addEventListener('click', openExport);
+  $('closeExport').addEventListener('click', closeExport);
+  $('sheet').addEventListener('click', (e) => { if (e.target === $('sheet')) closeExport(); });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !$('sheet').hidden) closeExport(); });
+  $('tierChips').addEventListener('click', (e) => { const b = e.target.closest('[data-v]'); if (b && !b.disabled) { S.tier = b.dataset.v; syncExport(); } });
+  $('fmtChips').addEventListener('click', (e) => {
+    const b = e.target.closest('[data-v]');
+    if (!b) return;
+    S.fmt = b.dataset.v;
+    if (S.fmt === 'png' && !pngAllowed(S.tier)) S.tier = '4K';
+    syncExport();
+  });
+  $('shapeChips').addEventListener('click', (e) => {
+    const b = e.target.closest('[data-v]');
+    if (!b) return;
+    S.shape = b.dataset.v;
+    if (S.shape === 'circle' && S.ratio.r[0] !== S.ratio.r[1]) { S.ratio = RATIOS[0]; rebuild(); toast(t('toCircle')); }
+    syncExport();
+  });
+  $('safe').addEventListener('change', (e) => { S.safe = e.target.checked; syncExport(); });
+
+  // 保存：在 claude.ai 里走 downloads 能力；本地浏览器用 a[download]；都不行就弹出图片让用户长按保存
+  let downloadsP = null;
+  function getDownloads() {
+    if (!downloadsP) downloadsP = window.claude && window.claude.use ? window.claude.use('downloads').catch(() => null) : Promise.resolve(undefined);
+    return downloadsP;
+  }
+  async function offer(filename, blob) {
+    const dl = await getDownloads();
+    if (dl) {
+      try { await dl.save({ filename, data: blob }); toast(t('saved') + filename); return; }
+      catch (e) {
+        if (e && e.code === 'declined') { toast(t('declined')); return; }
+        if (e && e.code === 'rate_limited') { toast(t('busy')); return; }
+      }
+    }
+    const url = URL.createObjectURL(blob);
+    if (dl === undefined && window.top === window.self) { // 普通浏览器直接打开：用 a[download]
+      const a = document.createElement('a');
+      a.href = url; a.download = filename;
+      document.body.append(a); a.click(); a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 4000);
+      toast(t('saved') + filename);
+      return;
+    }
+    $('resultImg').src = url;
+    $('result').hidden = false;
+  }
+  $('resultClose').addEventListener('click', () => { $('result').hidden = true; });
+
+  $('doExport').addEventListener('click', () => {
+    const [w, h] = exportDims();
+    const m = P.create(S.scene, simOpts());
+    const base = `pixtides-${P.shortCode(S.scene, S.seed)}-${w}x${h}${S.shape === 'square' ? '' : '-' + S.shape}`;
+    if (S.fmt === 'svg') { offer(base + '.svg', new Blob([P.toSVG(m, w, h, S.shape)], { type: 'image/svg+xml' })); return; }
+    toast(t('making'));
+    setTimeout(() => {
+      try {
+        const cv = P.toCanvas(m, w, h, S.shape);
+        cv.toBlob((b) => { if (!b) { toast(t('failed')); return; } offer(base + '.png', b); }, 'image/png');
+      } catch (err) { toast(t('failed')); }
+    }, 30);
+  });
+
+  let toastTimer = 0;
+  function toast(msg) {
+    const el = $('toast');
+    el.textContent = msg; el.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => el.classList.remove('show'), 2400);
+  }
+
+  // ---------- 语言 ----------
+  function applyLang() {
+    document.documentElement.lang = lang === 'zh' ? 'zh-CN' : 'en';
+    document.querySelectorAll('[data-i]').forEach((el) => { el.textContent = t(el.dataset.i); });
+    $('lang').textContent = t('lang');
+    $('lang').setAttribute('aria-label', lang === 'zh' ? 'Switch to English' : '切换到中文');
+    $('prev').setAttribute('aria-label', t('prev'));
+    $('next').setAttribute('aria-label', t('next'));
+    if (sim) syncUi();
+    if (!$('sheet').hidden) syncExport();
+  }
+  $('lang').addEventListener('click', () => {
+    lang = lang === 'zh' ? 'en' : 'zh';
+    try { localStorage.setItem('pt-lang', lang); } catch (e) {}
+    applyLang();
+  });
+
+  let rt = 0;
+  window.addEventListener('resize', () => { clearTimeout(rt); rt = setTimeout(() => rebuild(), 160); });
+
+  buildChips();
+  applyLang();
+  rebuild();
+})();
+</script>
+</body>
+</html>
