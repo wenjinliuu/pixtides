@@ -303,6 +303,6 @@ export default defineScene({
 | 变现 | 暂不考虑，以后最多加广告 |
 | 开工顺序 | 先出设计稿，确认后再搭 V0 工程 |
 
-已完成：Cloudflare 接入域名；设计稿评审（已定稿）；2026-10-07 第一版（海与水 9 个画面）上线 pixtides.com。
+已完成：Cloudflare 接入域名；设计稿评审（已定稿）；2026-10-07 第一版（海与水 9 个画面）上线 pixtides.com；www.pixtides.com 301 跳转到 pixtides.com（保留路径和查询参数）。
 
-待定：自动审核接口选型（V1 前）；www.pixtides.com 跳转到 pixtides.com。
+待定：自动审核接口选型（V1 前）。
