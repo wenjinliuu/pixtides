@@ -7,6 +7,8 @@ export type SilKind = 'moon' | 'sun' | 'mountains' | 'trees' | 'boat' | 'lightho
 
 /** 某个时段的配色：a 是手配色阶锚点（没有就由算法换色），glints 是该时刻才有的反光 / 发光色 */
 export interface TimeSet {
+  /** 这套配色的名字（编辑器里显示） */
+  name?: { zh: string; en: string };
   a?: Hex[];
   glints: Hex[];
 }
@@ -66,6 +68,13 @@ export interface Scene {
   /** 可能出现稀有彩蛋（鲸尾） */
   rare?: boolean;
   times?: Partial<Record<Exclude<Variant, 'day'>, TimeSet>>;
+  /** 默认配色（day 那一套）的名字 */
+  look?: { zh: string; en: string };
+  /**
+   * 编辑器里给用户选的精选配色，按显示顺序；不写就只有默认一套。
+   * 编号里沿用原来存时段的 2 位：day / dawn / dusk / night 四个槽位就是最多 4 套配色
+   */
+  presets?: Variant[];
 }
 
 export interface SimOptions {
@@ -84,6 +93,10 @@ export interface SimOptions {
   pair: number;
   invert: boolean;
   hue: number;
+  /** 饱和度倍数（1 = 原样） */
+  sat: number;
+  /** 明暗偏移（OKLCH 亮度，0 = 原样） */
+  light: number;
   variant: Variant;
   silhouette: boolean;
   silSeed: number;

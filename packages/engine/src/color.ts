@@ -78,6 +78,16 @@ export function ramp(anchors: Hex[], n: number): Hex[] {
   return out;
 }
 
+/** 用户调色：色相旋转 + 饱和度倍数 + 明暗偏移。只转色相时与 hueRotate 完全一致（老编号逐格不变） */
+export function adjust(hex: Hex, hue: number, sat = 1, light = 0): Hex {
+  if (sat === 1 && !light) return hueRotate(hex, hue);
+  const c = hexToOklch(hex);
+  c[0] = Math.max(0, Math.min(1, c[0] + light));
+  c[1] = Math.max(0, c[1] * sat);
+  c[2] = (c[2] + hue) % 360;
+  return oklchToHex(c);
+}
+
 export function hueRotate(hex: Hex, deg: number): Hex {
   if (!deg) return hex;
   const c = hexToOklch(hex);

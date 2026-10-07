@@ -1,14 +1,14 @@
 // 生成：场景 + 参数 + 种子 + 时间 → 半格网格（2G）上的色阶编号矩阵 cells。
 // 预览、动画、PNG、SVG 都从同一个 cells 出图。动画是时间的纯函数：同一种子、同一时刻，任何设备得到同一帧。
 
-import { hueRotate, ramp, variantPalette } from './color';
+import { adjust, hexToOklch, ramp, variantPalette } from './color';
 import { hashStr, mulberry32, seedMix, SEED_SPACE, tickRng, type Rng } from './rng';
 import { buildSilhouettes, detailUnit, type SilLayer } from './silhouettes';
 import type { Hex, Scene, SilKind, SimOptions, Variant } from './types';
 
 export const DEFAULTS: SimOptions = {
   grid: 32, ratio: [1, 1], seed: 1, angle: null, amp: null, terrace: 1, bands: null,
-  dots: null, dotMax: 5, pair: 0.22, invert: false, hue: 0, variant: 'day',
+  dots: null, dotMax: 5, pair: 0.22, invert: false, hue: 0, sat: 1, light: 0, variant: 'day',
   silhouette: true, silSeed: 0, palette: null, time: 0, rare: true,
 };
 
@@ -38,7 +38,7 @@ export function scenePalette(scene: Scene, o: SimOptions): Hex[] {
     pal = scene.pal && n === scene.pal.length ? scene.pal.slice() : ramp((scene.pal || scene.anchors)!, n);
     if (v !== 'day') pal = variantPalette(pal, v, scene.tint ?? 1);
   }
-  if (o.hue) pal = pal.map((h) => hueRotate(h, o.hue));
+  if (o.hue || o.sat !== 1 || o.light) pal = pal.map((h) => adjust(h, o.hue, o.sat, o.light));
   if (o.invert) pal.reverse();
   return pal;
 }
@@ -116,20 +116,21 @@ export class Sim {
     const vkey: Variant = o.variant;
     const timeSet = vkey !== 'day' ? scene.times?.[vkey] ?? null : null;
     // 有时段反光色时，光点也换成这个时刻的颜色（深海夜里是蓝色荧光）
-    const glow = (timeSet && scene.glow ? timeSet.glints : scene.glow || []).map((h) => hueRotate(h, o.hue));
-    const glints = timeSet ? timeSet.glints.map((h) => hueRotate(h, o.hue)) : [];
+    const tone = (h: Hex) => adjust(h, o.hue, o.sat, o.light);
+    const glow = (timeSet && scene.glow ? timeSet.glints : scene.glow || []).map(tone);
+    const glints = timeSet ? timeSet.glints.map(tone) : [];
     this.glowStart = L;
     this.moonIdx = L + glow.length;
     this.glintStart = L + glow.length + (scene.moon ? 1 : 0);
-    this.pal = bandPal.concat(glow, scene.moon ? [hueRotate(scene.moon, o.hue)] : [], glints);
-    if (scene.bolt) { this.boltIdx = this.pal.length; this.pal.push(hueRotate(scene.bolt, o.hue)); }
+    this.pal = bandPal.concat(glow, scene.moon ? [tone(scene.moon)] : [], glints);
+    if (scene.bolt) { this.boltIdx = this.pal.length; this.pal.push(tone(scene.bolt)); }
     // 剪影自带的颜色：和白天的色带放在一起换时段色，保证晨 / 昏 / 夜里也协调
     const extras: Hex[] = [...(scene.ridge?.colors || []), ...(scene.ridge?.snowColor ? [scene.ridge.snowColor] : []), ...(scene.silColor ? [scene.silColor] : [])];
     const extraStart = this.pal.length;
     if (extras.length) {
-      const day = scenePalette(scene, { ...o, variant: 'day', hue: 0, invert: false, palette: null });
+      const day = scenePalette(scene, { ...o, variant: 'day', hue: 0, sat: 1, light: 0, invert: false, palette: null });
       const shifted = vkey === 'day' ? extras : variantPalette(day.concat(extras), vkey, vkey === 'night' ? 1 : scene.tint ?? 1).slice(day.length);
-      this.pal.push(...shifted.map((h) => hueRotate(h, o.hue)));
+      this.pal.push(...shifted.map(tone));
     }
     let ei = extraStart;
     const ridgeIdx = scene.ridge?.colors ? scene.ridge.colors.map(() => ei++) : null;
@@ -261,7 +262,7 @@ export class Sim {
     const kinds: SilKind[] = scene.silhouette ? ([] as SilKind[]).concat(scene.silhouette) : [];
     if (kinds.includes('moon') && o.silhouette) this.makeMoon();
     if (o.silhouette) {
-      const ctx = { W, H, S, L, layer: this.layer, disc: scene.moon ? this.moonIdx : -1, ridgeIdx, snowIdx, silIdx };
+      const ctx = { W, H, S, L, layer: this.layer, lum: bandPal.map((h) => hexToOklch(h)[0]), disc: scene.moon ? this.moonIdx : -1, ridgeIdx, snowIdx, silIdx };
       this.sils = buildSilhouettes(kinds.filter((k) => k !== 'moon'), scene, ctx, seed, o.silSeed);
     }
 
