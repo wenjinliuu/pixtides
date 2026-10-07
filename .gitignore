@@ -1,3 +1,5 @@
 site/
 node_modules/
 .wrangler/
+dist/
+.astro/

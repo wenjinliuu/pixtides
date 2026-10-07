@@ -1,0 +1,82 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`快照：固定种子 → 固定画面 > abyss 1`] = `
+[
+  "992a1ca6bd2fe6b6",
+  "7c0d14eb4b065741",
+  "823e4c0bbdd15ade",
+  "a37342897d3cc957",
+]
+`;
+
+exports[`快照：固定种子 → 固定画面 > icelake 1`] = `
+[
+  "9f0d27e2756ba444",
+  "448ddbfd1b018b5d",
+  "8b49a039d887f762",
+  "3aa4c44447d6cd79",
+]
+`;
+
+exports[`快照：固定种子 → 固定画面 > moonsea 1`] = `
+[
+  "bd6bd9bd33fe7d87",
+  "4b750a4613bc389c",
+  "c26b281a1e7c45ad",
+  "f261476c9011279e",
+]
+`;
+
+exports[`快照：固定种子 → 固定画面 > reef 1`] = `
+[
+  "e83371f04dbecb95",
+  "9e2747f6fb2b3217",
+  "79b1c74f4e4a3ec0",
+  "c5d7ae61461888d3",
+]
+`;
+
+exports[`快照：固定种子 → 固定画面 > ripple 1`] = `
+[
+  "43aa93314ed84bd2",
+  "fcedbccb5bc5cf0c",
+  "8f5eb65695538fbf",
+  "38b91c28deff2164",
+]
+`;
+
+exports[`快照：固定种子 → 固定画面 > shoal 1`] = `
+[
+  "3ba692ffcc3bc159",
+  "07da4e0197e0b791",
+  "1dc5cf24345c469f",
+  "4f8a8ad40815d1a9",
+]
+`;
+
+exports[`快照：固定种子 → 固定画面 > swell 1`] = `
+[
+  "994f76efa46e525a",
+  "8b17971d624557b8",
+  "f8ec465486868eb6",
+  "f7bd4cb4261acf22",
+]
+`;
+
+exports[`快照：固定种子 → 固定画面 > tide 1`] = `
+[
+  "a7c28482203fbb06",
+  "8e2906fe84678185",
+  "19eeb36f163bdac7",
+  "481d47a327e8d06b",
+]
+`;
+
+exports[`快照：固定种子 → 固定画面 > waterfall 1`] = `
+[
+  "3c7f85af2fe545bc",
+  "a3868a23b7419617",
+  "e0caa23462fc71e5",
+  "c6f8d52602dec688",
+]
+`;

@@ -1,0 +1,9 @@
+{
+  "name": "@pixtides/engine",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "像素潮生成引擎：场景 + 参数 + 种子 + 时间 → 格子矩阵，以及 PNG / SVG 导出",
+  "exports": { ".": "./src/index.ts" },
+  "sideEffects": false
+}
