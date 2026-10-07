@@ -87,7 +87,7 @@ html[lang=en] .swipe-hint{font-family:var(--f-pixel);font-size:12px}
 .name{flex:1;min-width:0;display:grid;gap:2px;text-align:center}
 .name b{font-family:var(--f-zh);font-weight:400;font-size:24px;line-height:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 html[lang=en] .name b{font-family:var(--f-pixel);font-size:16px;line-height:1.5}
-.name small{font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-variant-numeric:tabular-nums}
+.name small{font-family:var(--f-pixel);font-size:12px;letter-spacing:.04em;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-variant-numeric:tabular-nums}
 
 .drawer{padding:16px 16px calc(28px + env(safe-area-inset-bottom,0px));display:grid;gap:22px;min-width:0}
 .group{display:grid;gap:10px;min-width:0}
@@ -293,6 +293,7 @@ html[lang=en] #toast{font-family:var(--f-body);font-size:13px}
         <button class="chip" type="button" data-v="svg">SVG</button>
       </div>
       <p class="hint" id="fmtHint"></p>
+      <p class="hint" id="cellHint" hidden></p>
     </div>
     <button class="btn primary" id="doExport" type="button" style="min-height:52px" data-i="download">下载</button>
   </div>
@@ -326,7 +327,7 @@ html[lang=en] #toast{font-family:var(--f-body);font-size:13px}
       radial: '径向', cells: '格', lang: 'EN', prev: '上一个画面', next: '下一个画面',
       pngHint: 'PNG 设计稿阶段用 canvas 编码，最高 4K 档；5K / 8K 在 V0 改用索引色编码器。竖向比例按短边算。', svgHint: 'SVG 同色合并成长矩形，任意放大都清晰。',
       toCircle: '圆形头像用 1:1，已切到 1:1', saved: '已保存 ', declined: '已取消保存', busy: '已有一个保存窗口，请先处理',
-      failed: '这个尺寸生成失败，换小一档试试', making: '正在生成…',
+      failed: '这个尺寸生成失败，换小一档试试', making: '正在生成…', cellHint: '每格约 {n} px，格子偏细，换高一档会更清晰。',
     },
     en: {
       swipe: '← Swipe for another scene →', dice: 'Reroll', scene: 'Scene · Sea & Water', grain: 'Pixel grain', ratio: 'Aspect ratio', palette: 'Colors',
@@ -338,7 +339,7 @@ html[lang=en] #toast{font-family:var(--f-body);font-size:13px}
       radial: 'radial', cells: 'cells', lang: '中', prev: 'Previous scene', next: 'Next scene',
       pngHint: 'Prototype PNG uses canvas, up to the 4K tier. 5K / 8K come with the indexed-color encoder in V0. Portrait ratios are sized by the short edge.', svgHint: 'SVG merges same-color runs into long rects; sharp at any size.',
       toCircle: 'Circle avatars are 1:1, switched to 1:1', saved: 'Saved ', declined: 'Save canceled', busy: 'A save prompt is already open',
-      failed: 'That size failed, try a smaller one', making: 'Rendering…',
+      failed: 'That size failed, try a smaller one', making: 'Rendering…', cellHint: 'Each cell is about {n} px. Pick a higher tier for a crisper result.',
     },
   };
   let lang = 'zh';
@@ -360,7 +361,10 @@ html[lang=en] #toast{font-family:var(--f-body);font-size:13px}
   };
   // 从首页带来的 #场景.种子.比例
   (function readHash() {
-    const parts = location.hash.replace('#', '').split('.');
+    const hash = location.hash.replace('#', '');
+    const fromCode = P.parseCode(hash); // 也接受编号，例如 #SH-7KQ-9ZT
+    if (fromCode && fromCode.scene.cat === 'sea') { S.scene = fromCode.scene; S.seed = fromCode.seed; return; }
+    const parts = hash.split('.');
     const sc = SEA.find((s) => s.id === parts[0]);
     if (sc) S.scene = sc;
     if (parts[1] && /^\d+$/.test(parts[1])) S.seed = +parts[1] >>> 0;
@@ -580,6 +584,10 @@ html[lang=en] #toast{font-family:var(--f-body);font-size:13px}
     const [w, h] = exportDims();
     $('exSize').textContent = w + ' × ' + h;
     $('fmtHint').textContent = S.fmt === 'png' ? t('pngHint') : t('svgHint');
+    // 格宽除不尽时相邻格子差 1 px；格子太细时提示换高一档
+    const cell = Math.min(w / sim.W, h / sim.H);
+    $('cellHint').hidden = !(S.fmt === 'png' && cell < 6);
+    $('cellHint').textContent = t('cellHint').replace('{n}', cell.toFixed(1));
     // 预览
     const box = $('exPreviewBox'), pv = $('exPreview');
     const m = P.create(S.scene, simOpts());
