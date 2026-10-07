@@ -786,7 +786,7 @@ html[lang=en] #toast{font-family:var(--f-body);font-size:13px}
   $('scenes').addEventListener('click', (e) => { const b = e.target.closest('.scene'); if (b) setScene(P.byId[b.dataset.v]); });
   $('prev').addEventListener('click', () => step(-1));
   $('next').addEventListener('click', () => step(1));
-  $('dice').addEventListener('click', () => { S.seed = (Math.random() * 4294967296) >>> 0; S.silSeed = 0; S.origin = null; S.edited = false; rebuild(400); });
+  $('dice').addEventListener('click', () => { S.seed = P.randomSeed(); S.silSeed = 0; S.origin = null; S.edited = false; rebuild(400); });
   $('gridChips').addEventListener('click', (e) => { const b = e.target.closest('[data-v]'); if (b) { S.grid = +b.dataset.v; touched(); rebuild(); } });
   $('ratioChips').addEventListener('click', (e) => { const b = e.target.closest('[data-v]'); if (b) { S.ratio = RATIOS.find((r) => r.id === b.dataset.v); touched(); rebuild(); } });
   $('variantChips').addEventListener('click', (e) => { const b = e.target.closest('[data-v]'); if (b) { S.variant = b.dataset.v; touched(); rebuild(350); } });
@@ -801,7 +801,7 @@ html[lang=en] #toast{font-family:var(--f-body);font-size:13px}
   $('silNext').addEventListener('click', () => { S.silSeed++; touched(); rebuild(300); });
   $('invert').addEventListener('change', (e) => { S.invert = e.target.checked; touched(); rebuild(400); });
   $('findRare').addEventListener('click', () => {
-    const s = P.findRare(S.scene, (Math.random() * 4294967296) >>> 0);
+    const s = P.findRare(S.scene, P.randomSeed());
     if (s == null) { toast(t('rareNone')); return; }
     S.seed = s; S.origin = null; S.edited = false; rebuild(400);
     toast(t('rareFound') + P.shortCode(S.scene, s));
@@ -837,7 +837,7 @@ html[lang=en] #toast{font-family:var(--f-body);font-size:13px}
     $('edit').scrollIntoView({ behavior: reduce.matches ? 'auto' : 'smooth' });
   });
   $('randomOne').addEventListener('click', () => {
-    load({ scene: SEA[Math.floor(Math.random() * SEA.length)], seed: (Math.random() * 4294967296) >>> 0, variant: 'day' }, null);
+    load({ scene: SEA[Math.floor(Math.random() * SEA.length)], seed: P.randomSeed(), variant: 'day' }, null);
     $('edit').scrollIntoView({ behavior: reduce.matches ? 'auto' : 'smooth' });
   });
   function openInEditor(next, origin) {
@@ -1090,7 +1090,7 @@ html[lang=en] #toast{font-family:var(--f-body);font-size:13px}
       const sm = document.createElement(live ? 'small' : 'span');
       sm.className = live ? '' : 'soon'; sm.textContent = live ? String(c.count) : t('soon');
       meta.append(b, sm); el.append(cv, meta); grid.append(el);
-      if (live) el.addEventListener('click', () => openInEditor({ scene: P.byId[c.cover], seed: (Math.random() * 4294967296) >>> 0, variant: 'day' }, null));
+      if (live) el.addEventListener('click', () => openInEditor({ scene: P.byId[c.cover], seed: P.randomSeed(), variant: 'day' }, null));
       const card = { el, cv, sim: P.create(c.cover, { grid: 16, seed: P.hashStr(c.id), rare: false }), view: new P.View(cv), playing: false, t: 0 };
       const on = () => { if (!reduce.matches) { card.playing = true; kick(); } }, off = () => { card.playing = false; };
       el.addEventListener('pointerenter', on); el.addEventListener('pointerdown', on);
@@ -1170,7 +1170,7 @@ html[lang=en] #toast{font-family:var(--f-body);font-size:13px}
   });
 
   // ================= 启动 =================
-  // 地址里的 #编号 直接打开那张图，例如 #SH-7KQ-9ZT0
+  // 地址里的 #编号 直接打开那张图，例如 #SH-7KQ9-ZT2M
   const fromHash = P.parseCode(location.hash.replace('#', ''));
   buildHero();
   lastSize = hero.clientWidth + 'x' + hero.clientHeight;
