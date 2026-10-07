@@ -6,7 +6,7 @@ import { inflateSync } from 'node:zlib';
 import { describe, expect, it } from 'vitest';
 import {
   create, dayPick, encodePNG, edges, exportSize, findRare, namePick, normalizeDate, normalizeName, parseCode, rareOf,
-  rowSpan, sha256, shortCode, textSeed, toSVG, SEED_SPACE, type Sim, type Variant,
+  rowSpan, sha256, shortCode, textSeed, toSVG, SEED_SPACE, encodeRecipe, parseRecipe, recipeOptions, RECIPE_DEFAULTS, type Recipe, type Sim, type Variant,
 } from '../src/index';
 import { byId, LIVE, SCENES } from '@pixtides/scenes';
 
@@ -127,7 +127,26 @@ describe('编号', () => {
       expect(parseCode(code.toLowerCase().replace(/1/g, 'l').replace(/0/g, 'o'), SCENES)?.seed).toBe(seed);
     }
     expect(parseCode('ZZ-1234-5678', SCENES)).toBeNull();
+    expect(parseCode('SH-1234', SCENES)?.seed).toBe(parseInt('1234', 32)); // 旧的短种子仍可解析
     expect(parseCode('SH-UUUU-UUUU', SCENES)).toBeNull();
+  });
+  it('配方编号：默认参数不加尾段，改动的参数都能还原', () => {
+    const base: Recipe = { scene: byId.moonsea, seed: 987654321012, ...RECIPE_DEFAULTS };
+    expect(encodeRecipe(base)).toBe(shortCode(byId.moonsea, 987654321012));
+    const cases: Partial<Recipe>[] = [
+      { grid: 96 }, { variant: 'dusk', grid: 16 }, { ratio: '9x19_5', hue: 359, invert: true },
+      { angle: 0, amp: 0, terrace: 2.5, bands: 10, dots: 3, dotMax: 2, pair: 0.6, silhouette: false, silSeed: 15 },
+      { amp: 1.3, terrace: 0.4, dots: 0, pair: 0.02, angle: 271, bands: 4 },
+    ];
+    for (const c of cases) {
+      const r = { ...base, ...c };
+      const code = encodeRecipe(r);
+      expect(parseRecipe(code, SCENES)).toEqual(r);
+      expect(parseRecipe(code.toLowerCase(), SCENES)).toEqual(r);
+      const a = create(r.scene, recipeOptions(r)), b = create(r.scene, recipeOptions(parseRecipe(code, SCENES)!));
+      expect(fnv(a.cells)).toBe(fnv(b.cells));
+    }
+    expect(encodeRecipe({ ...base, variant: 'dusk', grid: 16 }).length).toBeLessThanOrEqual(17);
   });
   it('稀有彩蛋约 1/512，只在指定画面', () => {
     let n = 0;

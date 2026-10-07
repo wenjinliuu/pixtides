@@ -6,7 +6,9 @@ export { Sim, create, scenePalette, rareOf, findRare, RARE_ODDS, DEFAULTS } from
 export { edges, paint, View } from './render';
 export { TIERS, exportSize, rowSpan, toCanvas, pairCanvases, toSVG, type TierId } from './export';
 export { encodePNG } from './png';
-export { shortCode, parseCode } from './code';
+export {
+  shortCode, parseCode, encodeRecipe, parseRecipe, recipeOptions, RATIOS, GRIDS, RECIPE_DEFAULTS, type Recipe, type RatioId,
+} from './code';
 export {
   normalizeText, normalizeName, normalizeDate, textSeed, localDateKey, dayPick, namePick, birthdayPick, comboPick,
   type DayPick, type SeedKind,
