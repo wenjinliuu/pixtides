@@ -9,6 +9,83 @@ exports[`快照：固定种子 → 固定画面 > abyss 1`] = `
 ]
 `;
 
+exports[`快照：固定种子 → 固定画面 > aurora（V1） 1`] = `
+[
+  "cc11d8d3425e0af4",
+  "7e50344fe16f29b6",
+]
+`;
+
+exports[`快照：固定种子 → 固定画面 > autumn（V1） 1`] = `
+[
+  "494f9f74d7c3ee1d",
+  "37f31a232c8e98c2",
+]
+`;
+
+exports[`快照：固定种子 → 固定画面 > bluehour（V1） 1`] = `
+[
+  "e5c29b8398435217",
+  "29ec73a6b76e63e3",
+]
+`;
+
+exports[`快照：固定种子 → 固定画面 > canyon（V1） 1`] = `
+[
+  "f6c3ece707a9a92c",
+]
+`;
+
+exports[`快照：固定种子 → 固定画面 > clear（V1） 1`] = `
+[
+  "b861300f8929bf37",
+  "8f2214639a1105c9",
+]
+`;
+
+exports[`快照：固定种子 → 固定画面 > cottoncandy（V1） 1`] = `
+[
+  "1b9aff937cb8967b",
+  "911ec6f34b245f27",
+  "d5dd7c821fa347d6",
+  "cb793ce0645ba59d",
+]
+`;
+
+exports[`快照：固定种子 → 固定画面 > cumulus（V1） 1`] = `
+[
+  "918bc7a9924d54b6",
+  "2a19391c8fab8a8d",
+]
+`;
+
+exports[`快照：固定种子 → 固定画面 > dune（V1） 1`] = `
+[
+  "e83be570b80d82ae",
+  "7cfc0bea2b6a1b74",
+]
+`;
+
+exports[`快照：固定种子 → 固定画面 > farhills（V1） 1`] = `
+[
+  "796797a2e938ae54",
+  "9ea70d2041e6e042",
+]
+`;
+
+exports[`快照：固定种子 → 固定画面 > forest（V1） 1`] = `
+[
+  "0656b8522d94e9b6",
+]
+`;
+
+exports[`快照：固定种子 → 固定画面 > grassland（V1） 1`] = `
+[
+  "dccffd2d8472fcde",
+  "201f61041f97c1ce",
+]
+`;
+
 exports[`快照：固定种子 → 固定画面 > icelake 1`] = `
 [
   "9f0d27e2756ba444",
@@ -18,12 +95,84 @@ exports[`快照：固定种子 → 固定画面 > icelake 1`] = `
 ]
 `;
 
+exports[`快照：固定种子 → 固定画面 > lava（V1） 1`] = `
+[
+  "34c756835b8f917c",
+  "77dcf4c9191da30b",
+]
+`;
+
+exports[`快照：固定种子 → 固定画面 > lavender（V1） 1`] = `
+[
+  "efab723bed95cb5a",
+  "4eeeee4b4bbcc844",
+]
+`;
+
+exports[`快照：固定种子 → 固定画面 > macaron（V1） 1`] = `
+[
+  "a30643e1ef54e052",
+  "6fb857792e21673d",
+  "06eb7d7ab6a93820",
+  "387257a3a22fb26f",
+]
+`;
+
+exports[`快照：固定种子 → 固定画面 > milkyway（V1） 1`] = `
+[
+  "aa59f91bd34117b7",
+  "603c68a2a60c9cac",
+]
+`;
+
+exports[`快照：固定种子 → 固定画面 > mintcream（V1） 1`] = `
+[
+  "c780ba32d68364bd",
+  "20c741f4228d767c",
+  "75dc229bc286e1ab",
+  "e8fb0f62beccf290",
+]
+`;
+
+exports[`快照：固定种子 → 固定画面 > mist（V1） 1`] = `
+[
+  "88801823f32597b3",
+]
+`;
+
+exports[`快照：固定种子 → 固定画面 > mono（V1） 1`] = `
+[
+  "e4da097d90275d07",
+  "c6ed5bd9ed665b57",
+  "9fc7117b88e6a879",
+]
+`;
+
 exports[`快照：固定种子 → 固定画面 > moonsea 1`] = `
 [
   "bd6bd9bd33fe7d87",
   "4b750a4613bc389c",
   "c26b281a1e7c45ad",
   "f261476c9011279e",
+]
+`;
+
+exports[`快照：固定种子 → 固定画面 > neon（V1） 1`] = `
+[
+  "5d8c29271e405380",
+  "498128eb585a3979",
+]
+`;
+
+exports[`快照：固定种子 → 固定画面 > rainbow（V1） 1`] = `
+[
+  "08a2d9aef45315e5",
+]
+`;
+
+exports[`快照：固定种子 → 固定画面 > rainnight（V1） 1`] = `
+[
+  "35c4501b7085d5aa",
 ]
 `;
 
@@ -45,12 +194,66 @@ exports[`快照：固定种子 → 固定画面 > ripple 1`] = `
 ]
 `;
 
+exports[`快照：固定种子 → 固定画面 > sakura（V1） 1`] = `
+[
+  "98f46a62aa1110ba",
+  "4bee7cc4a47401f5",
+]
+`;
+
 exports[`快照：固定种子 → 固定画面 > shoal 1`] = `
 [
   "3ba692ffcc3bc159",
   "07da4e0197e0b791",
   "1dc5cf24345c469f",
   "4f8a8ad40815d1a9",
+]
+`;
+
+exports[`快照：固定种子 → 固定画面 > snowfield（V1） 1`] = `
+[
+  "61a648207c7c554b",
+  "b7c531b67b0bb0d5",
+]
+`;
+
+exports[`快照：固定种子 → 固定画面 > snownight（V1） 1`] = `
+[
+  "c59779d45d1f82b1",
+]
+`;
+
+exports[`快照：固定种子 → 固定画面 > snowpeak（V1） 1`] = `
+[
+  "90c866272755fad8",
+  "26c0e234f4928beb",
+]
+`;
+
+exports[`快照：固定种子 → 固定画面 > starry（V1） 1`] = `
+[
+  "d78c27f5b52b0d46",
+  "d792e4bf8a2d3c5b",
+]
+`;
+
+exports[`快照：固定种子 → 固定画面 > storm（V1） 1`] = `
+[
+  "80b301558e639343",
+]
+`;
+
+exports[`快照：固定种子 → 固定画面 > sunrise（V1） 1`] = `
+[
+  "17611f6df228927c",
+  "e2d39b3d4ef5c5ab",
+]
+`;
+
+exports[`快照：固定种子 → 固定画面 > sunset（V1） 1`] = `
+[
+  "716b0cea3004cedf",
+  "9a7b061569f6063d",
 ]
 `;
 
@@ -72,11 +275,23 @@ exports[`快照：固定种子 → 固定画面 > tide 1`] = `
 ]
 `;
 
+exports[`快照：固定种子 → 固定画面 > tundra（V1） 1`] = `
+[
+  "241797d549457239",
+]
+`;
+
 exports[`快照：固定种子 → 固定画面 > waterfall 1`] = `
 [
   "3c7f85af2fe545bc",
   "a3868a23b7419617",
   "e0caa23462fc71e5",
   "c6f8d52602dec688",
+]
+`;
+
+exports[`快照：固定种子 → 固定画面 > wheat（V1） 1`] = `
+[
+  "d8e5569ee016aaab",
 ]
 `;

@@ -21,7 +21,7 @@ const T = {
     grainChip: '粒度 · {g}',
     sync: '此刻全世界看到同一片浪', dayPlate: '今日一张 · 第 {n} 张 · {name}', rollPlate: '回看 {d} · 第 {n} 张 · {name}', backToday: '回到今天',
     calendar: '日历', calTitle: '今日一张 · 日历', calNote: '每天打开就收集当天那张。点任意一天，第一屏换成那天的海，浪仍和全世界同步。',
-    mineScene: '画面', autoScene: '自动', sat: '饱和度', light: '明暗', sceneOf: '画面 · {c}', palDefault: '原色', palFollow: '跟随首页', fromDay: '{d} 的今日一张', swipe: '← 左右滑动换画面 →', dice: '换一张', scene: '画面 · 海与水', grain: '像素粒度', ratio: '画面比例',
+    mineScene: '画面', autoScene: '自动', sat: '饱和度', light: '明暗', sceneOf: '画面 · {c}', palDefault: '原色', gallery: '画廊', palFollow: '跟随首页', fromDay: '{d} 的今日一张', swipe: '← 左右滑动换画面 →', dice: '换一张', scene: '画面 · 海与水', grain: '像素粒度', ratio: '画面比例',
     palette: '配色', hue: '色相整体旋转', avatar: '头像预览', circle: '圆形', rounded: '圆角', square: '方',
     pairTitle: '一对头像', pairExport: '导出一对', pairHint: '两张并排时浪是连着的，适合情侣或好友各用一张。',
     more: '更多', angle: '渐变方向', amp: '浪线起伏', terrace: '平台长短', bands: '色带数量', dots: '散落方块 · 密度', dotMax: '散落方块 · 最大',
@@ -49,7 +49,7 @@ const T = {
     grainChip: 'Grain · {g}',
     sync: 'Everyone sees these same waves right now', dayPlate: 'Picture of the day · No. {n} · {name}', rollPlate: 'Looking back {d} · No. {n} · {name}', backToday: 'Back to today',
     calendar: 'Calendar', calTitle: 'Picture of the day · Calendar', calNote: 'Open the site to collect that day’s picture. Tap any day to show its sea up top; the waves stay in sync with everyone.',
-    mineScene: 'Scene', autoScene: 'Auto', sat: 'Saturation', light: 'Brightness', sceneOf: 'Scene · {c}', palDefault: 'Original', palFollow: 'Following home', fromDay: 'picture of {d}', swipe: '← Swipe for another scene →', dice: 'Reroll', scene: 'Scene · Sea & Water', grain: 'Pixel grain', ratio: 'Aspect ratio',
+    mineScene: 'Scene', autoScene: 'Auto', sat: 'Saturation', light: 'Brightness', sceneOf: 'Scene · {c}', palDefault: 'Original', gallery: 'Gallery', palFollow: 'Following home', fromDay: 'picture of {d}', swipe: '← Swipe for another scene →', dice: 'Reroll', scene: 'Scene · Sea & Water', grain: 'Pixel grain', ratio: 'Aspect ratio',
     palette: 'Colors', hue: 'Rotate hue', avatar: 'Avatar preview', circle: 'Circle', rounded: 'Rounded', square: 'Square',
     pairTitle: 'Matching pair', pairExport: 'Export pair', pairHint: 'Side by side, the waves join up. One for you, one for a friend.',
     more: 'More', angle: 'Direction', amp: 'Wave height', terrace: 'Terrace length', bands: 'Bands', dots: 'Scatter · density', dotMax: 'Scatter · max size',
@@ -670,7 +670,7 @@ function buildCats() {
     const sm = document.createElement(live ? 'small' : 'span');
     sm.className = live ? '' : 'soon'; sm.textContent = live ? String(c.count) : t('soon');
     meta.append(b, sm); el.append(cv, meta); grid.append(el);
-    if (live) el.addEventListener('click', () => openInEditor({ scene: P.byId[c.cover], seed: P.randomSeed(), variant: 'day' }, null));
+    if (live) el.addEventListener('click', () => { location.href = '/gallery#' + c.id; }); // 分类卡片进画廊对应分类
     const card: Card = { el, cv, sim: P.create(P.byId[c.cover], { grid: 16, seed: P.hashStr(c.id), rare: false }), view: new P.View(cv), playing: false, t: 0 };
     const on = () => { if (!reduce.matches) { card.playing = true; kick(); } }, off = () => { card.playing = false; };
     el.addEventListener('pointerenter', on); el.addEventListener('pointerdown', on);

@@ -65,6 +65,11 @@ describe('快照：固定种子 → 固定画面', () => {
   it.each(LIVE.map((s) => s.id))('%s', (id) => {
     const out = VARIANTS.map((v) => fnv(create(byId[id], { seed: 20261007, variant: v }).cells));
     expect(out).toMatchSnapshot();
+  });  // V1 画面：每套精选配色、96 格各锁一份（调画面时改了就用 vitest -u 更新，并在 PR 里说明）
+  it.each(SCENES.filter((s) => s.cat !== 'sea').map((s) => s.id))('%s（V1）', (id) => {
+    const sc = byId[id];
+    const out = (sc.presets || ['day']).map((v) => fnv(create(sc, { seed: 20261007, variant: v, grid: 96 }).cells));
+    expect(out).toMatchSnapshot();
   });
 });
 

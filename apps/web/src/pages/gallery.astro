@@ -1,0 +1,41 @@
+---
+// 画廊：按分类浏览全部画面，每个画面两张示例（不同种子 / 比例 / 配色），点卡片进编辑器。交互在 src/client/gallery.ts。
+import '@fontsource/silkscreen/400.css';
+import '../styles/site.css';
+---
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>画廊 · 像素潮 PixTides</title>
+<meta name="description" content="像素潮画廊：海与水、天空与光、大地与山、植物与季节、天气与时刻、心情，每一张都由代码现场画出。">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="preload" href="/fonts/pixtides-pixel.woff2" as="font" type="font/woff2" crossorigin>
+</head>
+<body class="gallery-page">
+<header class="g-top">
+  <a class="g-brand" href="/"><span class="zh">像素潮</span><span class="en">PixTides</span></a>
+  <div class="g-actions">
+    <a class="btn" href="/" data-i="home">回首页</a>
+    <button class="chip" id="theme" type="button">AUTO</button>
+    <button class="chip" id="lang" type="button" style="min-width:48px">EN</button>
+  </div>
+</header>
+<main class="g-main">
+  <div class="g-head">
+    <h1 data-i="title">画廊</h1>
+    <p id="note">点卡片打开编辑器，按住看它动起来。</p>
+  </div>
+  <nav class="g-tabs" id="tabs" aria-label="分类"></nav>
+  <div class="g-grid" id="grid"></div>
+</main>
+<footer>
+  <span class="brand">PIXTIDES</span>
+  <span data-i="foot">代码 MIT · 生成的图归你，可商用 · 字体 Fusion Pixel / Silkscreen（OFL）</span>
+</footer>
+<script>
+import '../client/gallery';
+</script>
+</body>
+</html>
