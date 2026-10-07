@@ -8,121 +8,250 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Silkscreen&display=swap">
 <style>
-/* 布局：第一屏是铺满视口的浅滩画面，站名压在深色色带上；往下是分类入口与今日一张。
-   界面色全部由 JS 按当前色板最深色阶推出（单一深色外观）。 */
+/* 布局：首页和编辑器是同一页的两种状态。第一屏是全屏的"此刻的海"，往下滚就进入编辑区（手机画布吸顶、
+   控件在下；桌面左画布右面板），再往下是今日一张、收集日历、我的海、分类。
+   界面色由 JS 按当前画面推出，深色 / 浅色两套（默认跟随系统）；第一屏叠字永远用深色那套。 */
 :root{
-  --bg:#02081B; --panel:#071125; --raise:#121D35; --line:#2A3754;
-  --fg:#ECF2FE; --muted:#99A5BC; --accent:#A9FBFD; --ink:#02081B; --deep:#0009F1;
+  --bg:#02081B; --panel:#071125; --raise:#121D35; --line:#2A3754; --fg:#ECF2FE; --muted:#99A5BC;
+  --accent:#A9FBFD; --on-accent:#02081B; --shadow:#000510; --deep:#0009F1;
+  --h-bg:#02081B; --h-fg:#ECF2FE; --h-accent:#A9FBFD; --h-on:#02081B; --h-ink:#000510;
   --f-pixel:"Silkscreen","PixTides Pixel",ui-monospace,monospace;
   --f-zh:"PixTides Pixel","Silkscreen",ui-monospace,monospace;
   --f-body:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Noto Sans SC","Microsoft YaHei",sans-serif;
   color-scheme:dark;
 }
+:root[data-theme=light]{color-scheme:light}
 *{box-sizing:border-box}
 [hidden]{display:none!important}
 html,body{margin:0;background:var(--bg);color:var(--fg)}
-body{font-family:var(--f-body);font-size:15px;line-height:1.6;-webkit-font-smoothing:antialiased;transition:background-color .6s}
+body{font-family:var(--f-body);font-size:14px;line-height:1.55;-webkit-font-smoothing:antialiased;transition:background-color .4s,color .4s}
 a{color:inherit}
+button,input{font:inherit;color:inherit}
 :focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.zh{font-family:var(--f-zh)}
+html[lang=en] .zh{font-family:var(--f-pixel)}
+
+/* ---------- 方角粗边控件 ---------- */
+.btn{appearance:none;display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:44px;padding:0 14px;cursor:pointer;
+  font-family:var(--f-zh);font-size:12px;letter-spacing:.06em;text-decoration:none;
+  background:var(--raise);color:var(--fg);border:2px solid var(--line);border-radius:0;box-shadow:3px 3px 0 var(--shadow)}
+html[lang=en] .btn{font-family:var(--f-pixel);font-size:16px;letter-spacing:0}
+.btn:active{transform:translate(2px,2px);box-shadow:1px 1px 0 var(--shadow)}
+.btn.primary{background:var(--accent);color:var(--on-accent);border-color:var(--accent)}
+.btn.icon{width:44px;padding:0;font-family:var(--f-pixel);font-size:16px}
+.btn .k{font-family:var(--f-pixel);font-size:16px}
+.btn[disabled]{opacity:.4;cursor:not-allowed}
+.chip{appearance:none;min-height:40px;padding:0 6px;cursor:pointer;border-radius:0;
+  font-family:var(--f-pixel);font-size:16px;background:var(--bg);color:var(--muted);border:2px solid var(--line)}
+.chip[aria-pressed=true]{color:var(--on-accent);background:var(--accent);border-color:var(--accent)}
+.chip[disabled]{opacity:.35;cursor:not-allowed}
+.chip .note{display:block;font-size:12px;line-height:1;font-family:var(--f-pixel)}
+.chips{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}
+.chips.five{grid-template-columns:repeat(5,minmax(0,1fr))}
+.chips.five .chip{font-size:12px;padding:0 2px;line-height:1.3}
+.chips.three{grid-template-columns:repeat(3,minmax(0,1fr))}
+.chips.two{grid-template-columns:repeat(2,minmax(0,1fr))}
+.chip.zhc{font-family:var(--f-zh);font-size:12px}
+html[lang=en] .chip.zhc{font-family:var(--f-pixel);font-size:12px}
+.ratio{display:grid;justify-items:center;gap:4px;padding:6px 2px;min-height:58px}
+.ratio i{display:block;border:2px solid currentColor;max-width:100%}
+.ratio span{font-size:12px;line-height:1;font-family:var(--f-pixel)}
+input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:28px;margin:0;background:none;cursor:pointer}
+input[type=range]::-webkit-slider-runnable-track{height:8px;background:var(--bg);border:2px solid var(--line)}
+input[type=range]::-moz-range-track{height:4px;background:var(--bg);border:2px solid var(--line)}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:20px;height:20px;margin-top:-8px;background:var(--accent);border:2px solid var(--shadow);border-radius:0}
+input[type=range]::-moz-range-thumb{width:16px;height:16px;background:var(--accent);border:2px solid var(--shadow);border-radius:0}
+input[type=range]:disabled{opacity:.35}
+input[type=text],input[type=date]{width:100%;min-height:44px;padding:0 12px;border-radius:0;background:var(--raise);border:2px solid var(--line);font-size:16px}
+input[type=text]::placeholder{color:var(--muted)}
+.switch{position:relative;display:inline-block;width:48px;height:28px;flex:none}
+.switch input{position:absolute;inset:0;opacity:0;margin:0;cursor:pointer}
+.switch span{position:absolute;inset:0;background:var(--bg);border:2px solid var(--line);pointer-events:none}
+.switch span::after{content:"";position:absolute;top:4px;left:4px;width:16px;height:16px;background:var(--muted)}
+.switch input:checked+span{border-color:var(--accent)}
+.switch input:checked+span::after{left:24px;background:var(--accent)}
+.switch input:focus-visible+span{outline:2px solid var(--accent);outline-offset:2px}
+.label{display:flex;justify-content:space-between;align-items:baseline;gap:8px;font-family:var(--f-zh);font-size:12px;letter-spacing:.06em;color:var(--muted)}
+html[lang=en] .label{font-family:var(--f-body);font-size:12px;letter-spacing:.08em;text-transform:uppercase}
+.label output{font-family:var(--f-pixel);font-size:16px;color:var(--fg);letter-spacing:0;text-transform:none;font-variant-numeric:tabular-nums}
+.hint{margin:0;font-size:12px;color:var(--muted)}
+.row{display:flex;justify-content:space-between;align-items:center;gap:12px;font-size:13px}
+.row .zh{font-size:12px}
+.badge{display:inline-block;font-family:var(--f-zh);font-size:12px;line-height:1;padding:4px 6px;background:var(--accent);color:var(--on-accent)}
+html[lang=en] .badge{font-family:var(--f-pixel)}
 
 /* ---------- 第一屏 ---------- */
 .hero{position:relative;height:100vh;height:100svh;min-height:480px;overflow:hidden;background:var(--deep)}
 #sea{position:absolute;inset:0;width:100%;height:100%;display:block;image-rendering:pixelated}
-.hero-top{position:absolute;left:0;right:0;top:0;display:flex;justify-content:flex-end;padding:calc(env(safe-area-inset-top,0px) + 12px) 16px 0}
-.hero-text{position:absolute;left:clamp(16px,7vw,96px);right:16px;top:clamp(88px,17svh,200px);display:grid;gap:14px;justify-items:start;max-width:620px}
+.hero-top{position:absolute;left:0;right:0;top:0;display:flex;justify-content:flex-end;gap:8px;padding:calc(env(safe-area-inset-top,0px) + 12px) 16px 0}
+.hero .chip{background:var(--h-bg);color:var(--h-fg);border-color:var(--h-bg)}
+.hero-text{position:absolute;left:clamp(16px,7vw,96px);right:16px;top:clamp(88px,16svh,200px);display:grid;gap:14px;justify-items:start;max-width:620px;color:var(--h-fg)}
 .hero h1{margin:0;display:grid;gap:6px;font-weight:400;line-height:1}
-.hero h1 .zh{font-family:var(--f-zh);font-size:48px;letter-spacing:.08em;text-shadow:4px 4px 0 var(--ink)}
-.hero h1 .en{font-family:var(--f-pixel);font-size:24px;letter-spacing:.12em;color:var(--accent);text-shadow:3px 3px 0 var(--ink)}
-.tag{margin:0;font-family:var(--f-zh);font-size:24px;line-height:1.5;text-shadow:2px 2px 0 var(--ink);text-wrap:balance}
+.hero h1 .zh{font-family:var(--f-zh);font-size:48px;letter-spacing:.08em;text-shadow:4px 4px 0 var(--h-ink)}
+.hero h1 .en{font-family:var(--f-pixel);font-size:24px;letter-spacing:.12em;color:var(--h-accent);text-shadow:3px 3px 0 var(--h-ink)}
+.tag{margin:0;font-family:var(--f-zh);font-size:24px;line-height:1.5;text-shadow:2px 2px 0 var(--h-ink);text-wrap:balance}
 html[lang=en] .tag{font-family:var(--f-pixel);font-size:16px;line-height:1.8}
-.sub{margin:0;max-width:34ch;font-size:14px;line-height:1.6;color:var(--fg);background:var(--bg);padding:6px 10px;box-shadow:3px 3px 0 var(--ink)}
+.sub{margin:0;max-width:34ch;font-size:14px;line-height:1.6;background:var(--h-bg);padding:6px 10px;box-shadow:3px 3px 0 var(--h-ink)}
 .cta{display:flex;flex-wrap:wrap;gap:10px;margin-top:6px}
-@media (min-width:760px){
-  .hero h1 .zh{font-size:72px}
-  .hero h1 .en{font-size:32px}
+.hero .btn{background:var(--h-bg);color:var(--h-fg);border-color:var(--h-fg);box-shadow:3px 3px 0 var(--h-ink)}
+.hero .btn.primary{background:var(--h-accent);color:var(--h-on);border-color:var(--h-accent)}
+.hero-foot{position:absolute;left:16px;right:16px;bottom:calc(env(safe-area-inset-bottom,0px) + 14px);display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:10px;color:var(--h-fg)}
+.timebar{display:grid;gap:6px;justify-items:start}
+.plate{font-family:var(--f-zh);font-size:12px;background:var(--h-bg);padding:3px 8px}
+html[lang=en] .plate{font-family:var(--f-pixel)}
+.plate b{font-family:var(--f-pixel);font-weight:400;font-variant-numeric:tabular-nums}
+.seg{display:flex;background:var(--h-bg);border:2px solid var(--h-bg)}
+.seg button{appearance:none;border:0;border-radius:0;min-width:40px;min-height:36px;padding:0 8px;cursor:pointer;background:none;color:var(--h-fg);opacity:.7;font-family:var(--f-zh);font-size:12px}
+html[lang=en] .seg button{font-family:var(--f-pixel);font-size:12px}
+.seg button[aria-pressed=true]{background:var(--h-accent);color:var(--h-on);opacity:1}
+@media (min-width:760px){.hero h1 .zh{font-size:72px}.hero h1 .en{font-size:32px}}
+
+/* ---------- 编辑区 ---------- */
+.edit{position:relative;display:grid;grid-template-columns:minmax(0,1fr);border-top:2px solid var(--line)}
+.stage{position:sticky;top:0;z-index:3;background:var(--bg);padding:calc(env(safe-area-inset-top,0px) + 10px) 16px 10px;display:grid;gap:10px;border-bottom:2px solid var(--line)}
+.canvas-wrap{display:grid;place-items:center;height:min(44svh,calc(100vw - 32px));min-height:200px;touch-action:pan-y;user-select:none;-webkit-user-select:none}
+.canvas-box{position:relative;max-width:100%;max-height:100%;box-shadow:0 0 0 2px var(--line),4px 4px 0 2px var(--shadow)}
+#view{display:block;width:100%;height:100%;image-rendering:pixelated}
+.swipe-hint{position:absolute;left:50%;bottom:8px;transform:translateX(-50%);white-space:nowrap;font-family:var(--f-zh);font-size:12px;color:var(--fg);background:var(--bg);padding:2px 8px;pointer-events:none}
+html[lang=en] .swipe-hint{font-family:var(--f-pixel)}
+.rare-tag{position:absolute;left:8px;top:8px}
+.namebar{display:flex;align-items:center;gap:8px;width:100%;max-width:720px;justify-self:center}
+.name{flex:1;min-width:0;display:grid;gap:2px;text-align:center}
+.name b{font-family:var(--f-zh);font-weight:400;font-size:24px;line-height:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+html[lang=en] .name b{font-family:var(--f-pixel);font-size:16px;line-height:1.5}
+.name small{font-family:var(--f-pixel);font-size:12px;color:var(--muted);letter-spacing:.04em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.name .origin{font-family:var(--f-zh);font-size:12px;color:var(--accent)}
+html[lang=en] .name .origin{font-family:var(--f-body)}
+.drawer{padding:16px 16px 28px;display:grid;gap:22px;min-width:0;align-content:start}
+.group{display:grid;gap:10px;min-width:0}
+.scenes{display:grid;grid-auto-flow:column;grid-auto-columns:72px;gap:8px;overflow-x:auto;padding:2px 2px 8px;scroll-snap-type:x proximity;scrollbar-width:thin}
+.scene{appearance:none;display:grid;gap:4px;padding:0;background:none;border:0;cursor:pointer;scroll-snap-align:start;text-align:center}
+.scene canvas{width:72px;height:72px;display:block;image-rendering:pixelated;border:2px solid var(--line)}
+.scene span{font-family:var(--f-zh);font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+html[lang=en] .scene span{font-family:var(--f-body);font-size:11px}
+.scene[aria-pressed=true] canvas{border-color:var(--accent)}
+.scene[aria-pressed=true] span{color:var(--fg)}
+.avatars{display:flex;gap:16px;align-items:flex-end;flex-wrap:wrap}
+.av{display:grid;gap:6px;justify-items:center}
+.av canvas{width:72px;height:72px;display:block}
+.av .c{border-radius:50%}
+.av .r{border-radius:16px}
+.av span{font-family:var(--f-zh);font-size:12px;color:var(--muted)}
+html[lang=en] .av span{font-family:var(--f-body);font-size:11px}
+.av-tiny canvas{width:36px;height:36px}
+.pair{display:flex;gap:0;align-items:center}
+.pair canvas{width:72px;height:72px;display:block;border-radius:50%}
+.pair canvas+canvas{margin-left:6px}
+details.more{border:2px solid var(--line);background:var(--panel)}
+details.more summary{list-style:none;cursor:pointer;display:flex;justify-content:space-between;align-items:center;min-height:44px;padding:0 12px;font-family:var(--f-zh);font-size:12px;letter-spacing:.06em}
+html[lang=en] details.more summary{font-family:var(--f-pixel);font-size:16px;letter-spacing:0}
+details.more summary::-webkit-details-marker{display:none}
+details.more summary::after{content:"+";font-family:var(--f-pixel);font-size:16px}
+details.more[open] summary::after{content:"-"}
+.more-body{display:grid;gap:18px;padding:4px 12px 16px}
+@media (min-width:900px){
+  .edit{grid-template-columns:minmax(0,1fr) 380px;height:100vh}
+  .stage{position:relative;height:100vh;align-content:center;border-bottom:0;padding:16px 32px 24px}
+  .canvas-wrap{height:calc(100vh - 150px)}
+  .drawer{border-left:2px solid var(--line);background:var(--panel);height:100vh;overflow-y:auto}
+  .swipe-hint{display:none}
 }
 
-/* 方角粗边按钮 */
-.btn{appearance:none;display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:44px;padding:0 16px;
-  font-family:var(--f-zh);font-size:12px;letter-spacing:.06em;text-decoration:none;cursor:pointer;
-  color:var(--fg);background:var(--bg);border:2px solid var(--fg);box-shadow:3px 3px 0 var(--ink);border-radius:0}
-html[lang=en] .btn{font-family:var(--f-pixel);font-size:16px;letter-spacing:.02em}
-.btn:active{transform:translate(2px,2px);box-shadow:1px 1px 0 var(--ink)}
-.btn.primary{background:var(--accent);color:var(--ink);border-color:var(--accent)}
-.btn .k{font-family:var(--f-pixel);font-size:16px}
-
-.chip{appearance:none;font-family:var(--f-pixel);font-size:16px;min-height:36px;padding:0 10px;cursor:pointer;
-  color:var(--fg);background:var(--bg);border:2px solid var(--line);border-radius:0}
-.chip[aria-pressed=true]{border-color:var(--accent);color:var(--accent)}
-
-/* 时段调试条 */
-.hero-foot{position:absolute;left:16px;right:16px;bottom:calc(env(safe-area-inset-bottom,0px) + 14px);display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:10px}
-.timebar{display:grid;gap:6px;justify-items:start}
-.timebar .label{font-family:var(--f-zh);font-size:12px;color:var(--fg);background:var(--bg);padding:2px 6px;border:2px solid var(--bg)}
-html[lang=en] .timebar .label{font-family:var(--f-pixel);font-size:16px;padding:0 6px}
-.seg{display:flex;background:var(--bg);border:2px solid var(--bg)}
-.seg button{appearance:none;border:0;border-radius:0;min-width:40px;min-height:36px;padding:0 8px;cursor:pointer;
-  background:none;color:var(--muted);font-family:var(--f-zh);font-size:12px}
-html[lang=en] .seg button{font-family:var(--f-pixel);font-size:16px}
-.seg button[aria-pressed=true]{background:var(--accent);color:var(--ink)}
-.scroll{font-family:var(--f-zh);font-size:12px;text-decoration:none;color:var(--fg);background:var(--bg);padding:6px 10px;border:2px solid var(--bg)}
-html[lang=en] .scroll{font-family:var(--f-pixel);font-size:16px}
-
-/* ---------- 往下 ---------- */
+/* ---------- 往下的版块 ---------- */
 .wrap{max-width:1120px;margin:0 auto;padding-inline:16px;padding-block:48px 32px;display:grid;gap:56px}
-.sec{display:grid;gap:18px}
+.sec{display:grid;gap:18px;min-width:0}
 .sec-head{display:flex;align-items:baseline;justify-content:space-between;gap:12px;flex-wrap:wrap}
 .sec h2{margin:0;font-family:var(--f-zh);font-weight:400;font-size:24px;letter-spacing:.06em;line-height:1.2}
 html[lang=en] .sec h2{font-family:var(--f-pixel)}
-.sec-head p{margin:0;color:var(--muted);font-size:13px}
+.sec-head p{margin:0;color:var(--muted);font-size:13px;max-width:52ch}
+.card{background:var(--panel);border:2px solid var(--line);padding:12px;display:grid;gap:16px;min-width:0}
+@media (min-width:760px){.card.split{grid-template-columns:minmax(0,380px) minmax(0,1fr);gap:28px;padding:16px;align-items:end}}
+.pic{width:100%;max-width:100%;display:block;image-rendering:pixelated}
+.info{display:grid;gap:12px;align-content:end;min-width:0}
+.big-date{font-family:var(--f-pixel);font-size:32px;line-height:1;font-variant-numeric:tabular-nums}
+.big-name{font-family:var(--f-zh);font-size:24px;line-height:1.2}
+html[lang=en] .big-name{font-family:var(--f-pixel)}
+.code{font-family:var(--f-pixel);font-size:16px;color:var(--muted);letter-spacing:.04em}
+.info p{margin:0;color:var(--muted);font-size:14px;max-width:44ch}
+.swatches{display:flex;height:16px;border:2px solid var(--line)}
+.swatches i{flex:1}
+
+.cal{display:grid;gap:10px}
+.cal-head{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.cal-head b{font-family:var(--f-pixel);font-weight:400;font-size:16px}
+.cal-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px}
+.cal-grid .wd{font-family:var(--f-zh);font-size:12px;color:var(--muted);text-align:center}
+html[lang=en] .cal-grid .wd{font-family:var(--f-pixel)}
+.day{appearance:none;position:relative;aspect-ratio:1/1;max-width:100%;padding:0;border:2px solid var(--line);background:var(--bg);cursor:pointer;display:grid;place-items:center;
+  font-family:var(--f-pixel);font-size:12px;color:var(--muted);overflow:hidden}
+.day canvas{position:absolute;inset:0;width:100%;height:100%;image-rendering:pixelated}
+.day.got{border-color:var(--accent)}
+.day.today::after{content:"";position:absolute;right:2px;top:2px;width:6px;height:6px;background:var(--accent)}
+.day.future{opacity:.35;cursor:default;border-style:dashed}
+.day[aria-pressed=true]{outline:2px solid var(--fg);outline-offset:1px}
+
+.mine-form{display:grid;gap:10px}
+.mine-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px}
+.mine-tabs{display:grid;grid-template-columns:1fr 1fr;gap:6px}
 
 .cats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
 @media (min-width:760px){.cats{grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}}
-.cat{display:grid;gap:0;text-decoration:none;color:var(--fg);background:var(--panel);border:2px solid var(--line);min-width:0}
+.cat{display:grid;text-decoration:none;color:var(--fg);background:var(--panel);border:2px solid var(--line);min-width:0;cursor:pointer;text-align:left;padding:0;appearance:none}
 .cat:hover,.cat:focus-visible{border-color:var(--accent)}
 .cat canvas{width:100%;aspect-ratio:1/1;max-width:100%;display:block;image-rendering:pixelated;border-bottom:2px solid var(--line)}
 .cat .meta{display:flex;justify-content:space-between;align-items:baseline;gap:8px;padding:10px 10px 12px}
 .cat b{font-family:var(--f-zh);font-weight:400;font-size:12px;letter-spacing:.06em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 html[lang=en] .cat b{font-family:var(--f-body);font-size:14px;font-weight:600;letter-spacing:0}
-.cat small{font-family:var(--f-pixel);font-size:16px;color:var(--muted);font-variant-numeric:tabular-nums;white-space:nowrap}
+.cat small{font-family:var(--f-pixel);font-size:16px;color:var(--muted);white-space:nowrap}
 .cat .soon{font-family:var(--f-zh);font-size:12px;color:var(--muted)}
 html[lang=en] .cat .soon{font-family:var(--f-body)}
-
-.today{display:grid;grid-template-columns:minmax(0,1fr);gap:16px;background:var(--panel);border:2px solid var(--line);padding:12px}
-@media (min-width:760px){.today{grid-template-columns:minmax(0,420px) minmax(0,1fr);gap:28px;padding:16px;align-items:end}}
-#todayCv{width:100%;max-width:100%;aspect-ratio:4/5;display:block;image-rendering:pixelated}
-.today-info{display:grid;gap:12px;align-content:end;min-width:0}
-.today-date{font-family:var(--f-pixel);font-size:32px;line-height:1;letter-spacing:.02em;font-variant-numeric:tabular-nums}
-.today-name{font-family:var(--f-zh);font-size:24px;line-height:1.2}
-html[lang=en] .today-name{font-family:var(--f-pixel)}
-.today-code{font-family:var(--f-pixel);font-size:16px;letter-spacing:.04em;color:var(--muted)}
-.today-info p{margin:0;color:var(--muted);font-size:14px;max-width:44ch}
-.swatches{display:flex;height:16px;border:2px solid var(--line)}
-.swatches i{flex:1}
-
 footer{max-width:1120px;margin:0 auto;padding-inline:16px;padding-block:24px calc(32px + env(safe-area-inset-bottom,0px));display:flex;flex-wrap:wrap;gap:8px 20px;justify-content:space-between;color:var(--muted);font-size:13px;border-top:2px solid var(--line)}
 footer .brand{font-family:var(--f-pixel);font-size:16px;color:var(--fg)}
+
+/* ---------- 导出面板与弹层 ---------- */
+.sheet{position:fixed;inset:0;z-index:20;display:grid;align-items:end;justify-items:center;background:rgba(0,0,0,.6)}
+.sheet-card{width:100%;max-width:520px;max-height:92svh;overflow-y:auto;background:var(--panel);border:2px solid var(--line);border-bottom:0;
+  padding:16px 16px calc(20px + env(safe-area-inset-bottom,0px));display:grid;gap:18px}
+@media (min-width:900px){.sheet{align-items:center}.sheet-card{border-bottom:2px solid var(--line)}}
+.sheet-head{display:flex;justify-content:space-between;align-items:center}
+.sheet-head h2{margin:0;font-family:var(--f-zh);font-weight:400;font-size:24px}
+html[lang=en] .sheet-head h2{font-family:var(--f-pixel)}
+.ex-preview{display:grid;place-items:center;height:180px;background:repeating-conic-gradient(var(--raise) 0 25%,var(--bg) 0 50%) 0 0/16px 16px;border:2px solid var(--line);position:relative}
+.ex-preview canvas{max-width:100%;max-height:164px;display:block;image-rendering:pixelated}
+.ex-size{font-family:var(--f-pixel);font-size:16px;font-variant-numeric:tabular-nums}
+.safe-ring{position:absolute;border:2px dashed var(--fg);border-radius:50%;pointer-events:none}
+.result{position:fixed;inset:0;z-index:30;display:grid;place-items:center;padding:16px;background:rgba(0,0,0,.85)}
+.result .rcard{display:grid;gap:12px;justify-items:center;max-width:min(92vw,520px);text-align:center;color:#fff}
+.result img{max-width:100%;max-height:70svh;image-rendering:pixelated;background:repeating-conic-gradient(#333 0 25%,#222 0 50%) 0 0/16px 16px}
+#toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:40;max-width:calc(100vw - 32px);
+  background:var(--fg);color:var(--bg);padding:8px 14px;font-family:var(--f-zh);font-size:12px;border:2px solid var(--bg);opacity:0;pointer-events:none;transition:opacity .2s}
+html[lang=en] #toast{font-family:var(--f-body);font-size:13px}
+#toast.show{opacity:1}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
 </head>
 <body>
 
-<section class="hero" aria-label="浅滩">
+<!-- ================= 第一屏：此刻的海 ================= -->
+<section class="hero" id="hero" aria-label="此刻的海">
   <canvas id="sea" aria-hidden="true"></canvas>
   <div class="hero-top">
-    <button class="chip" id="lang" type="button" aria-label="切换语言">EN</button>
+    <button class="chip" id="theme" type="button">AUTO</button>
+    <button class="chip" id="lang" type="button" style="min-width:48px">EN</button>
   </div>
   <div class="hero-text">
     <h1><span class="zh">像素潮</span><span class="en">PixTides</span></h1>
     <p class="tag" data-i="tag">每一张都由代码现场画出</p>
     <p class="sub" data-i="sub">选一个画面，掷骰子，调到喜欢，下载当头像或壁纸。</p>
     <div class="cta">
-      <a class="btn primary" href="editor.html" data-i="start">开始生成</a>
-      <a class="btn" href="editor.html" id="randomOne"><span data-i="random">随机一张</span> <span class="k" aria-hidden="true">⚄</span></a>
+      <a class="btn primary" href="#edit" id="editThis"><span data-i="editThis">调这张</span> <span class="k" aria-hidden="true">↓</span></a>
+      <button class="btn" type="button" id="randomOne"><span data-i="random">随机一张</span> <span class="k" aria-hidden="true">⚄</span></button>
     </div>
   </div>
   <div class="hero-foot">
     <div class="timebar">
-      <span class="label" id="timeLabel">昼 · 自动</span>
+      <span class="plate" id="syncPlate">此刻全世界看到同一片海 · <b>UTC 00:00:00</b></span>
+      <span class="plate" id="timeLabel">昼 · 自动</span>
       <div class="seg" id="timeSeg" role="group" aria-label="时段调试">
         <button type="button" data-t="auto" aria-pressed="true" data-i="auto">自动</button>
         <button type="button" data-t="dawn" data-i="dawn">晨</button>
@@ -131,35 +260,154 @@ footer .brand{font-family:var(--f-pixel);font-size:16px;color:var(--fg)}
         <button type="button" data-t="night" data-i="night">夜</button>
       </div>
     </div>
-    <a class="scroll" href="#cats" data-i="more">往下看 ↓</a>
   </div>
 </section>
 
+<!-- ================= 编辑区 ================= -->
+<section class="edit" id="edit" aria-label="编辑">
+  <div class="stage">
+    <div class="canvas-wrap" id="wrap">
+      <div class="canvas-box" id="box">
+        <canvas id="view" aria-label="当前画面"></canvas>
+        <span class="badge rare-tag" id="rareTag" hidden>稀有 · 鲸尾</span>
+        <span class="swipe-hint" id="swipeHint" data-i="swipe">← 左右滑动换画面 →</span>
+      </div>
+    </div>
+    <div class="namebar">
+      <button class="btn icon" id="prev" type="button" aria-label="上一个画面">&lt;</button>
+      <div class="name"><b id="name">浅滩</b><small id="code">SH-000-0000 · 32×32</small><span class="origin" id="origin" hidden></span></div>
+      <button class="btn icon" id="next" type="button" aria-label="下一个画面">&gt;</button>
+      <button class="btn primary" id="dice" type="button"><span data-i="dice">换一张</span><span class="k" aria-hidden="true">⚄</span></button>
+    </div>
+  </div>
+
+  <div class="drawer" aria-label="控件">
+    <div class="group">
+      <div class="label"><span data-i="scene">画面 · 海与水</span><output id="sceneOut">1 / 9</output></div>
+      <div class="scenes" id="scenes"></div>
+    </div>
+    <div class="group">
+      <div class="label"><span data-i="grain">像素粒度</span><output id="gridOut">32</output></div>
+      <div class="chips" id="gridChips"></div>
+    </div>
+    <div class="group">
+      <div class="label"><span data-i="ratio">画面比例</span><output id="ratioOut">1:1</output></div>
+      <div class="chips" id="ratioChips"></div>
+    </div>
+    <div class="group">
+      <div class="label"><span data-i="palette">配色</span><output id="hueOut">0°</output></div>
+      <div class="chips" id="variantChips">
+        <button class="chip zhc" type="button" data-v="dawn" data-i="dawn">晨</button>
+        <button class="chip zhc" type="button" data-v="day" data-i="day">昼</button>
+        <button class="chip zhc" type="button" data-v="dusk" data-i="dusk">昏</button>
+        <button class="chip zhc" type="button" data-v="night" data-i="night">夜</button>
+      </div>
+      <label class="row" for="hue"><span class="zh" data-i="hue">色相整体旋转</span></label>
+      <input type="range" id="hue" min="0" max="359" step="1" value="0">
+    </div>
+    <div class="group">
+      <div class="label"><span data-i="avatar">头像预览</span></div>
+      <div class="avatars">
+        <div class="av"><canvas class="c" id="avC" width="216" height="216"></canvas><span data-i="circle">圆形</span></div>
+        <div class="av"><canvas class="r" id="avR" width="216" height="216"></canvas><span data-i="rounded">圆角</span></div>
+        <div class="av av-tiny"><canvas class="c" id="avS" width="108" height="108"></canvas><span>36 px</span></div>
+      </div>
+    </div>
+    <div class="group">
+      <div class="label"><span data-i="pairTitle">一对头像</span></div>
+      <div class="row">
+        <div class="pair"><canvas id="pairA" width="216" height="216"></canvas><canvas id="pairB" width="216" height="216"></canvas></div>
+        <button class="btn" id="pairExport" type="button" data-i="pairExport">导出一对</button>
+      </div>
+      <p class="hint" data-i="pairHint">两张并排时浪是连着的，适合情侣或好友各用一张。</p>
+    </div>
+    <details class="more" id="more">
+      <summary data-i="more">更多</summary>
+      <div class="more-body">
+        <div class="group"><label class="label" for="angle"><span data-i="angle">渐变方向</span><output id="angleOut">94°</output></label><input type="range" id="angle" min="0" max="359" step="1" value="94"></div>
+        <div class="group"><label class="label" for="amp"><span data-i="amp">浪线起伏</span><output id="ampOut">1.0</output></label><input type="range" id="amp" min="0" max="2" step="0.1" value="1"></div>
+        <div class="group"><label class="label" for="terrace"><span data-i="terrace">平台长短</span><output id="terraceOut">1.0</output></label><input type="range" id="terrace" min="0.4" max="2.5" step="0.1" value="1"></div>
+        <div class="group"><label class="label" for="bands"><span data-i="bands">色带数量</span><output id="bandsOut">6</output></label><input type="range" id="bands" min="4" max="10" step="1" value="6"></div>
+        <div class="group"><label class="label" for="dots"><span data-i="dots">散落方块 · 密度</span><output id="dotsOut">1.0</output></label><input type="range" id="dots" min="0" max="3" step="0.1" value="1"></div>
+        <div class="group"><label class="label" for="dotMax"><span data-i="dotMax">散落方块 · 最大</span><output id="dotMaxOut">2.5</output></label><input type="range" id="dotMax" min="2" max="5" step="1" value="5"></div>
+        <div class="group"><label class="label" for="pair"><span data-i="pairRatio">散落方块 · 成对比例</span><output id="pairOut">22%</output></label><input type="range" id="pair" min="0" max="0.6" step="0.02" value="0.22"></div>
+        <div class="row" id="silRow">
+          <span class="zh" data-i="sil">剪影（月亮）</span>
+          <span style="display:flex;gap:10px;align-items:center">
+            <button class="btn" id="silNext" type="button" style="min-height:36px" data-i="silNext">换一个</button>
+            <label class="switch"><input type="checkbox" id="sil" checked aria-label="剪影"><span></span></label>
+          </span>
+        </div>
+        <div class="row"><span class="zh" data-i="invert">深浅反转</span><label class="switch"><input type="checkbox" id="invert" aria-label="深浅反转"><span></span></label></div>
+        <div class="row"><span class="zh" data-i="motion">画布动效</span><label class="switch"><input type="checkbox" id="motion" checked aria-label="画布动效"><span></span></label></div>
+        <div class="row"><span class="zh" data-i="rareDebug">刷一张稀有的（调试）</span><button class="btn" id="findRare" type="button" style="min-height:36px">1/512</button></div>
+      </div>
+    </details>
+    <div class="group">
+      <button class="btn primary" id="openExport" type="button" style="min-height:52px" data-i="export">导出 PNG / SVG</button>
+      <p class="hint" data-i="exportHint">导出的是这张图的静止画面，与编号一一对应。</p>
+    </div>
+  </div>
+</section>
+
+<!-- ================= 往下 ================= -->
 <main class="wrap">
-  <section class="sec" id="cats" aria-labelledby="catsTitle">
+  <section class="sec" aria-labelledby="todayTitle">
+    <div class="sec-head">
+      <h2 id="todayTitle" data-i="todayTitle">今日一张</h2>
+      <p data-i="todayNote">按你所在地的日期，同一天全世界看到同一张。每天来看一眼，日历上就多一格。</p>
+    </div>
+    <div class="card split">
+      <canvas class="pic" id="todayCv" style="aspect-ratio:4/5" aria-label="今日一张"></canvas>
+      <div class="info">
+        <div class="big-date" id="todayDate">2026-10-07</div>
+        <div class="big-name" id="todayName">潮汐</div>
+        <div class="code" id="todayCode">No.1 · TD-000-0000</div>
+        <div class="swatches" id="todaySw" aria-hidden="true"></div>
+        <div class="cal">
+          <div class="cal-head">
+            <button class="btn icon" id="calPrev" type="button" aria-label="上个月">&lt;</button>
+            <b id="calMonth">2026-10</b>
+            <button class="btn icon" id="calNext" type="button" aria-label="下个月">&gt;</button>
+          </div>
+          <div class="cal-grid" id="calGrid"></div>
+          <p class="hint" id="calCount">已收集 1 天</p>
+        </div>
+        <div class="cta"><button class="btn primary" id="todayOpen" type="button" data-i="openEditor">在编辑器里打开</button></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="sec" aria-labelledby="mineTitle">
+    <div class="sec-head">
+      <h2 id="mineTitle" data-i="mineTitle">我的海</h2>
+      <p data-i="mineNote">输入名字或一句话，或者选你的生日。同样的输入永远得到同一张，换台手机也一样。</p>
+    </div>
+    <div class="card split">
+      <canvas class="pic" id="mineCv" style="aspect-ratio:1/1" aria-label="我的海"></canvas>
+      <div class="info">
+        <div class="mine-tabs" id="mineTabs">
+          <button class="chip zhc" type="button" data-v="name" aria-pressed="true" data-i="byName">名字 / 一句话</button>
+          <button class="chip zhc" type="button" data-v="birthday" data-i="byBirthday">生日</button>
+        </div>
+        <form class="mine-form" id="mineForm">
+          <div class="mine-row" id="nameRow"><input type="text" id="mineText" maxlength="60" autocomplete="off" placeholder="像素潮"><button class="btn primary" type="submit" data-i="make">生成</button></div>
+          <div class="mine-row" id="dateRow" hidden><input type="date" id="mineDate" value="2000-01-01"><button class="btn primary" type="submit" data-i="make">生成</button></div>
+        </form>
+        <div class="big-name" id="mineName">「像素潮」的海</div>
+        <div class="code" id="mineCode">SH-000-0000</div>
+        <p id="mineExplain"></p>
+        <div class="cta"><button class="btn primary" id="mineOpen" type="button" data-i="openEditor">在编辑器里打开</button></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="sec" aria-labelledby="catsTitle">
     <div class="sec-head">
       <h2 id="catsTitle" data-i="catsTitle">六类风景</h2>
       <p data-i="catsNote">36 个画面，同一种画风。按住卡片看它动起来。</p>
     </div>
     <div class="cats" id="catGrid"></div>
-  </section>
-
-  <section class="sec" aria-labelledby="todayTitle">
-    <div class="sec-head">
-      <h2 id="todayTitle" data-i="todayTitle">今日一张</h2>
-      <p data-i="todayNote">用日期做种子，全世界今天看到的是同一张。</p>
-    </div>
-    <div class="today">
-      <canvas id="todayCv" aria-label="今日一张"></canvas>
-      <div class="today-info">
-        <div class="today-date" id="todayDate">2026-10-07</div>
-        <div class="today-name" id="todayName">潮汐</div>
-        <div class="today-code" id="todayCode">td-000000</div>
-        <div class="swatches" id="todaySw" aria-hidden="true"></div>
-        <p data-i="todayBody">明天零点换下一张。打开编辑器可以换比例、调粒度，再下载成头像或壁纸。</p>
-        <div class="cta"><a class="btn primary" id="todayOpen" href="editor.html" data-i="todayOpen">在编辑器里打开</a></div>
-      </div>
-    </div>
   </section>
 </main>
 
@@ -168,79 +416,596 @@ footer .brand{font-family:var(--f-pixel);font-size:16px;color:var(--fg)}
   <span data-i="foot">代码 MIT · 生成的图归你，可商用 · 字体 Fusion Pixel / Silkscreen（OFL）</span>
 </footer>
 
+<div class="sheet" id="sheet" hidden>
+  <div class="sheet-card" role="dialog" aria-modal="true" aria-labelledby="exTitle">
+    <div class="sheet-head">
+      <h2 id="exTitle" data-i="exTitle">导出</h2>
+      <button class="btn icon" id="closeExport" type="button" aria-label="关闭">X</button>
+    </div>
+    <div class="ex-preview" id="exPreviewBox"><canvas id="exPreview"></canvas></div>
+    <div class="group">
+      <div class="label"><span data-i="res">分辨率</span><output class="ex-size" id="exSize">3840 × 3840</output></div>
+      <div class="chips five" id="tierChips"></div>
+    </div>
+    <div class="group">
+      <div class="label"><span data-i="shape">形状</span></div>
+      <div class="chips three" id="shapeChips">
+        <button class="chip zhc" type="button" data-v="square" data-i="square">方</button>
+        <button class="chip zhc" type="button" data-v="circle" data-i="circle">圆形</button>
+        <button class="chip zhc" type="button" data-v="round" data-i="rounded">圆角</button>
+      </div>
+      <div class="row"><span class="zh" data-i="safe">安全区参考线</span><label class="switch"><input type="checkbox" id="safe" aria-label="安全区"><span></span></label></div>
+    </div>
+    <div class="group">
+      <div class="label"><span data-i="format">格式</span></div>
+      <div class="chips two" id="fmtChips">
+        <button class="chip" type="button" data-v="png">PNG</button>
+        <button class="chip" type="button" data-v="svg">SVG</button>
+      </div>
+      <p class="hint" id="fmtHint"></p>
+      <p class="hint" id="cellHint" hidden></p>
+    </div>
+    <button class="btn primary" id="doExport" type="button" style="min-height:52px" data-i="download">下载</button>
+  </div>
+</div>
+<div class="result" id="result" hidden>
+  <div class="rcard">
+    <img id="resultImg" alt="">
+    <p data-i="longPress">长按图片保存到相册。</p>
+    <button class="btn" id="resultClose" type="button" data-i="close">关闭</button>
+  </div>
+</div>
+<div id="toast" role="status"></div>
+
 <script src="proto-engine.js"></script>
 <script>
 (function () {
   'use strict';
   const P = window.PixTides;
   const $ = (id) => document.getElementById(id);
-
-  // ---------- 文案 ----------
-  const T = {
-    zh: { tag: '每一张都由代码现场画出', sub: '选一个画面，掷骰子，调到喜欢，下载当头像或壁纸。', start: '开始生成', random: '随机一张',
-      auto: '自动', dawn: '晨', day: '昼', dusk: '昏', night: '夜', more: '往下看 ↓', catsTitle: '六类风景',
-      catsNote: '36 个画面，同一种画风。按住卡片看它动起来。', todayTitle: '今日一张', todayNote: '用日期做种子，全世界今天看到的是同一张。',
-      todayBody: '明天零点换下一张。打开编辑器可以换比例、调粒度，再下载成头像或壁纸。', todayOpen: '在编辑器里打开',
-      foot: '代码 MIT · 生成的图归你，可商用 · 字体 Fusion Pixel / Silkscreen（OFL）', scenes: '个画面', soon: 'V1 上线',
-      timeAuto: '自动', timeDebug: '调试', lang: 'EN' },
-    en: { tag: 'Every picture is drawn live, in code', sub: 'Pick a scene, roll the dice, tune it, and save it as an avatar or wallpaper.', start: 'Start making', random: 'Surprise me',
-      auto: 'Auto', dawn: 'Dawn', day: 'Day', dusk: 'Dusk', night: 'Night', more: 'Scroll ↓', catsTitle: 'Six worlds',
-      catsNote: '36 scenes, one style. Press and hold a card to see it move.', todayTitle: 'Picture of the day', todayNote: 'Seeded by the date: everyone sees the same one today.',
-      todayBody: 'A new one arrives at midnight. Open it in the editor to change the ratio or grain, then save it.', todayOpen: 'Open in editor',
-      foot: 'Code MIT · Your pictures are yours, commercial use OK · Fonts Fusion Pixel / Silkscreen (OFL)', scenes: 'scenes', soon: 'In V1',
-      timeAuto: 'auto', timeDebug: 'debug', lang: '中' },
+  const store = {
+    get(k, d) { try { const v = localStorage.getItem(k); return v == null ? d : JSON.parse(v); } catch (e) { return d; } },
+    set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} },
   };
-  let lang = 'zh';
-  try { lang = localStorage.getItem('pt-lang') || (navigator.language.startsWith('zh') ? 'zh' : 'en'); } catch (e) {}
 
-  // ---------- 第一屏：浅滩 ----------
+  // ================= 文案 =================
+  const T = {
+    zh: {
+      tag: '每一张都由代码现场画出', sub: '选一个画面，掷骰子，调到喜欢，下载当头像或壁纸。', editThis: '调这张', random: '随机一张',
+      auto: '自动', dawn: '晨', day: '昼', dusk: '昏', night: '夜', timeAuto: '自动', timeDebug: '调试',
+      sync: '此刻全世界看到同一片海', swipe: '← 左右滑动换画面 →', dice: '换一张', scene: '画面 · 海与水', grain: '像素粒度', ratio: '画面比例',
+      palette: '配色', hue: '色相整体旋转', avatar: '头像预览', circle: '圆形', rounded: '圆角', square: '方',
+      pairTitle: '一对头像', pairExport: '导出一对', pairHint: '两张并排时浪是连着的，适合情侣或好友各用一张。',
+      more: '更多', angle: '渐变方向', amp: '浪线起伏', terrace: '平台长短', bands: '色带数量', dots: '散落方块 · 密度', dotMax: '散落方块 · 最大',
+      pairRatio: '散落方块 · 成对比例', sil: '剪影（月亮）', silNext: '换一个', invert: '深浅反转', motion: '画布动效', rareDebug: '刷一张稀有的（调试）',
+      export: '导出 PNG / SVG', exportHint: '导出的是这张图的静止画面，与编号一一对应。', exTitle: '导出', res: '分辨率', shape: '形状', safe: '安全区参考线',
+      format: '格式', download: '下载', longPress: '长按图片保存到相册。', close: '关闭',
+      todayTitle: '今日一张', todayNote: '按你所在地的日期，同一天全世界看到同一张。每天来看一眼，日历上就多一格。', openEditor: '在编辑器里打开',
+      mineTitle: '我的海', mineNote: '输入名字或一句话，或者选你的生日。同样的输入永远得到同一张，换台手机也一样。', byName: '名字 / 一句话', byBirthday: '生日', make: '生成',
+      catsTitle: '六类风景', catsNote: '36 个画面，同一种画风。按住卡片看它动起来。', foot: '代码 MIT · 生成的图归你，可商用 · 字体 Fusion Pixel / Silkscreen（OFL）',
+      soon: 'V1 上线', radial: '径向', cells: '格', lang: 'EN', prev: '上一个画面', next: '下一个画面',
+      themeAuto: '自动', themeDark: '深色', themeLight: '浅色',
+      pngHint: 'PNG 设计稿阶段用 canvas 编码，最高 4K 档；5K / 8K 在 V0 改用索引色编码器。竖向比例按短边算。', svgHint: 'SVG 同色合并成长矩形，任意放大都清晰。',
+      cellHint: '每格约 {n} px，格子偏细，换高一档会更清晰。', toCircle: '圆形头像用 1:1，已切到 1:1', saved: '已保存 ', declined: '已取消保存',
+      busy: '已有一个保存窗口，请先处理', failed: '这个尺寸生成失败，换小一档试试', making: '正在生成…',
+      rare: '稀有 · 鲸尾', rareFound: '找到一张稀有的：', rareNone: '这个画面没有彩蛋',
+      originFrom: '改自 ', fromHero: '此刻的海', fromToday: '今日一张', fromName: '「{t}」的海', fromBirthday: '{d} 的海', fromCode: '编号',
+      no: '第 {n} 张', collected: '已收集 {n} 天', wd: ['一', '二', '三', '四', '五', '六', '日'],
+      mineName: '「{t}」的海', mineDay: '{d} 的海', mineNameExplain: '规则：把文字规范化（去掉首尾空格、全角转半角、英文转小写）后算 SHA-256，前 4 字节做种子，后 4 字节挑画面。',
+      mineDayExplain: '生日用的就是那一天的「今日一张」规则：{d} 是第 {n} 张。', pairSaved: '已导出一对', heroCode: '今天的海',
+    },
+    en: {
+      tag: 'Every picture is drawn live, in code', sub: 'Pick a scene, roll the dice, tune it, and save it as an avatar or wallpaper.', editThis: 'Edit this one', random: 'Surprise me',
+      auto: 'Auto', dawn: 'Dawn', day: 'Day', dusk: 'Dusk', night: 'Night', timeAuto: 'auto', timeDebug: 'debug',
+      sync: 'Everyone sees this same sea right now', swipe: '← Swipe for another scene →', dice: 'Reroll', scene: 'Scene · Sea & Water', grain: 'Pixel grain', ratio: 'Aspect ratio',
+      palette: 'Colors', hue: 'Rotate hue', avatar: 'Avatar preview', circle: 'Circle', rounded: 'Rounded', square: 'Square',
+      pairTitle: 'Matching pair', pairExport: 'Export pair', pairHint: 'Side by side, the waves join up. One for you, one for a friend.',
+      more: 'More', angle: 'Direction', amp: 'Wave height', terrace: 'Terrace length', bands: 'Bands', dots: 'Scatter · density', dotMax: 'Scatter · max size',
+      pairRatio: 'Scatter · pairs', sil: 'Silhouette (moon)', silNext: 'Another', invert: 'Invert light/dark', motion: 'Canvas motion', rareDebug: 'Find a rare one (debug)',
+      export: 'Export PNG / SVG', exportHint: 'Exports the still frame that matches this picture code.', exTitle: 'Export', res: 'Resolution', shape: 'Shape', safe: 'Safe-area guide',
+      format: 'Format', download: 'Download', longPress: 'Press and hold the image to save it.', close: 'Close',
+      todayTitle: 'Picture of the day', todayNote: 'By your local date, everyone sees the same picture on the same day. Visit daily to fill your calendar.', openEditor: 'Open in editor',
+      mineTitle: 'Your sea', mineNote: 'Type a name or a phrase, or pick your birthday. The same input always gives the same picture, on any device.', byName: 'Name / phrase', byBirthday: 'Birthday', make: 'Make',
+      catsTitle: 'Six worlds', catsNote: '36 scenes, one style. Press and hold a card to see it move.', foot: 'Code MIT · Your pictures are yours, commercial use OK · Fonts Fusion Pixel / Silkscreen (OFL)',
+      soon: 'In V1', radial: 'radial', cells: 'cells', lang: '中', prev: 'Previous scene', next: 'Next scene',
+      themeAuto: 'Auto', themeDark: 'Dark', themeLight: 'Light',
+      pngHint: 'Prototype PNG uses canvas, up to the 4K tier. 5K / 8K come with the indexed-color encoder in V0. Portrait ratios are sized by the short edge.', svgHint: 'SVG merges same-color runs into long rects; sharp at any size.',
+      cellHint: 'Each cell is about {n} px. Pick a higher tier for a crisper result.', toCircle: 'Circle avatars are 1:1, switched to 1:1', saved: 'Saved ', declined: 'Save canceled',
+      busy: 'A save prompt is already open', failed: 'That size failed, try a smaller one', making: 'Rendering…',
+      rare: 'Rare · Whale tail', rareFound: 'Found a rare one: ', rareNone: 'This scene has no easter egg',
+      originFrom: 'Remixed from ', fromHero: 'today’s sea', fromToday: 'picture of the day', fromName: '“{t}”', fromBirthday: '{d}', fromCode: 'code',
+      no: 'No. {n}', collected: '{n} days collected', wd: ['M', 'T', 'W', 'T', 'F', 'S', 'S'],
+      mineName: '“{t}”', mineDay: 'The sea of {d}', mineNameExplain: 'Rule: normalize the text (trim, full-width to half-width, lowercase), take SHA-256, use the first 4 bytes as the seed and the next 4 to pick the scene.',
+      mineDayExplain: 'A birthday uses the picture-of-the-day rule for that date: {d} is No. {n}.', pairSaved: 'Pair exported', heroCode: 'Today’s sea',
+    },
+  };
+  let lang = store.get('pt-lang', navigator.language.startsWith('zh') ? 'zh' : 'en');
+  const t = (k, vars) => { let s = T[lang][k]; if (vars) for (const v in vars) s = s.replace('{' + v + '}', vars[v]); return s; };
+
+  // ================= 主题：自动 / 深色 / 浅色 =================
+  const sysDark = matchMedia('(prefers-color-scheme: dark)');
+  let themeMode = store.get('pt-theme', 'auto');
+  const resolvedTheme = () => (themeMode === 'auto' ? (sysDark.matches ? 'dark' : 'light') : themeMode);
+  function applyTheme(pal) {
+    const mode = resolvedTheme(), ui = P.uiTokens(pal, mode), st = document.documentElement.style;
+    document.documentElement.dataset.theme = mode;
+    const map = { bg: 'bg', panel: 'panel', raise: 'raise', line: 'line', fg: 'fg', muted: 'muted', accent: 'accent', onAccent: 'on-accent', shadow: 'shadow', deep: 'deep' };
+    for (const k in map) st.setProperty('--' + map[k], ui[k]);
+    themeMeta.setAttribute('content', ui.bg);
+  }
+  function applyHeroTokens(pal) {
+    const ui = P.uiTokens(pal, 'dark'), st = document.documentElement.style;
+    st.setProperty('--h-bg', ui.bg); st.setProperty('--h-fg', ui.fg); st.setProperty('--h-accent', ui.accent);
+    st.setProperty('--h-on', ui.onAccent); st.setProperty('--h-ink', ui.shadow);
+  }
+  const themeMeta = document.createElement('meta');
+  themeMeta.name = 'theme-color';
+  document.head.append(themeMeta);
+  $('theme').addEventListener('click', () => {
+    themeMode = { auto: 'dark', dark: 'light', light: 'auto' }[themeMode];
+    store.set('pt-theme', themeMode);
+    syncThemeChip();
+    applyTheme(sim.pal.slice(0, sim.L));
+  });
+  sysDark.addEventListener?.('change', () => applyTheme(sim.pal.slice(0, sim.L)));
+  function syncThemeChip() { $('theme').textContent = t({ auto: 'themeAuto', dark: 'themeDark', light: 'themeLight' }[themeMode]); }
+
   const reduce = matchMedia('(prefers-reduced-motion: reduce)');
-  const hero = document.querySelector('.hero');
-  const view = new P.View($('sea'));
-  let sim = null, seed = (Math.random() * 1e9) >>> 0;
-  let mode = 'auto', current = P.timeOfDay();
+  const dpr = () => Math.min(3, window.devicePixelRatio || 1);
+  const SEA = P.SCENES.filter((s) => s.cat === 'sea');
 
-  function build() {
-    const w = hero.clientWidth, h = hero.clientHeight, dpr = Math.min(3, window.devicePixelRatio || 1);
+  // ================= 第一屏：全球同步的海 =================
+  const hero = $('hero');
+  const heroView = new P.View($('sea'));
+  let heroSim = null, heroSea = P.globalSea(), timeMode = 'auto', heroTime = P.timeOfDay(), heroVisible = true;
+  function buildHero() {
+    heroSea = P.globalSea();
+    const w = hero.clientWidth, h = hero.clientHeight;
     const G = Math.max(14, Math.min(40, Math.round(Math.min(w, h) / 17)));
-    sim = P.create('shoal', { grid: G, ratio: [w, h], seed, palette: P.SHOAL_TIMES[current] });
-    view.attach(sim, Math.round(w * dpr), Math.round(h * dpr));
-    view.render();
+    heroSim = P.create('shoal', { grid: G, ratio: [w, h], seed: heroSea.seed, time: heroSea.t, variant: heroTime, rare: false });
+    heroView.attach(heroSim, Math.round(w * dpr()), Math.round(h * dpr()));
+    heroView.render();
+    applyHeroTokens(heroSim.pal.slice(0, heroSim.L));
   }
-
-  function applyUi(pal) {
-    const ui = P.uiTokens(pal), st = document.documentElement.style;
-    for (const k of ['bg', 'panel', 'raise', 'line', 'fg', 'muted', 'accent', 'ink', 'deep']) st.setProperty('--' + k, ui[k]);
-    document.querySelector('meta[name=theme-color]')?.setAttribute('content', ui.bg);
-  }
-
-  function setTime(next, animate) {
-    if (next === current && sim) return;
-    current = next;
-    const pal = P.SHOAL_TIMES[current];
-    if (animate && !reduce.matches) view.dissolve(1000);
-    sim.setPalette(pal);
-    applyUi(pal);
-    view.render();
-    kick();
+  function setHeroTime(next, animate) {
+    if (next === heroTime) return;
+    heroTime = next;
+    if (animate && !reduce.matches) heroView.dissolve(1000);
+    heroSim.setPalette(P.SHOAL_TIMES[heroTime]);
+    applyHeroTokens(P.SHOAL_TIMES[heroTime]);
+    heroView.render();
     updateTimeLabel();
+    kick();
   }
-  function updateTimeLabel() {
-    const t = T[lang];
-    $('timeLabel').textContent = t[current] + ' · ' + (mode === 'auto' ? t.timeAuto : t.timeDebug);
+  function updateTimeLabel() { $('timeLabel').textContent = t(heroTime) + ' · ' + (timeMode === 'auto' ? t('timeAuto') : t('timeDebug')); }
+  function updateSyncPlate() {
+    const d = new Date(), pad = (n) => String(n).padStart(2, '0');
+    $('syncPlate').innerHTML = '';
+    $('syncPlate').append(t('sync') + ' · ');
+    const b = document.createElement('b');
+    b.textContent = `UTC ${pad(d.getUTCHours())}:${pad(d.getUTCMinutes())}:${pad(d.getUTCSeconds())}`;
+    $('syncPlate').append(b);
   }
-
   $('timeSeg').addEventListener('click', (e) => {
     const b = e.target.closest('button');
     if (!b) return;
-    mode = b.dataset.t;
+    timeMode = b.dataset.t;
     document.querySelectorAll('#timeSeg button').forEach((x) => x.setAttribute('aria-pressed', x === b));
-    setTime(mode === 'auto' ? P.timeOfDay() : mode, true);
+    setHeroTime(timeMode === 'auto' ? P.timeOfDay() : timeMode, true);
     updateTimeLabel();
   });
-  setInterval(() => { if (mode === 'auto') setTime(P.timeOfDay(), true); }, 30000);
+  setInterval(() => {
+    updateSyncPlate();
+    if (timeMode === 'auto') setHeroTime(P.timeOfDay(), true);
+    if (P.globalSea().key !== heroSea.key) buildHero(); // UTC 零点换一片海
+  }, 1000);
 
-  // 动画：10 fps 推进；溶解期间每帧刷新
+  // ================= 编辑区 =================
+  const GRIDS = [12, 16, 24, 32, 48, 64, 96, 128];
+  const RATIOS = [
+    { id: '1x1', r: [1, 1], label: '1:1' }, { id: '9x16', r: [9, 16], label: '9:16' }, { id: '9x19_5', r: [9, 19.5], label: '9:19.5' },
+    { id: '16x9', r: [16, 9], label: '16:9' }, { id: '16x10', r: [16, 10], label: '16:10' }, { id: '21x9', r: [21, 9], label: '21:9' },
+    { id: '3x4', r: [3, 4], label: '3:4' }, { id: '4x5', r: [4, 5], label: '4:5' },
+  ];
+  const S = {
+    scene: SEA[0], seed: heroSea.seed, grid: 32, ratio: RATIOS[0], variant: heroTime, hue: 0,
+    angle: null, amp: null, terrace: 1, bands: null, dots: null, dotMax: 5, pair: 0.22, silhouette: true, silSeed: 0, invert: false,
+    motion: true, tier: '4K', shape: 'square', fmt: 'png', safe: false,
+    origin: { kind: 'hero' }, edited: false,
+  };
+  const view = new P.View($('view'));
+  let sim = null, editTime = 0, editVisible = false;
+  const simOpts = (extra) => Object.assign({
+    grid: S.grid, ratio: S.ratio.r, seed: S.seed, variant: S.variant, hue: S.hue, angle: S.angle, amp: S.amp, terrace: S.terrace,
+    bands: S.bands, dots: S.dots, dotMax: S.dotMax, pair: S.pair, silhouette: S.silhouette, silSeed: S.silSeed, invert: S.invert,
+  }, extra);
+
+  function fitBox() {
+    const wrap = $('wrap'), box = $('box'), [a, b] = S.ratio.r;
+    const W = wrap.clientWidth, H = wrap.clientHeight;
+    let w = W, h = (W * b) / a;
+    if (h > H) { h = H; w = (H * a) / b; }
+    box.style.width = Math.floor(w) + 'px'; box.style.height = Math.floor(h) + 'px';
+    return [Math.floor(w), Math.floor(h)];
+  }
+  function rebuild(transition) {
+    const [w, h] = fitBox();
+    const next = P.create(S.scene, simOpts({ time: editTime }));
+    const pw = Math.round(w * dpr()), ph = Math.round(h * dpr());
+    if (transition && sim && sim.W === next.W && sim.H === next.H && view.w === pw && view.h === ph && !reduce.matches) view.dissolve(transition);
+    sim = next;
+    view.attach(sim, pw, ph);
+    view.render();
+    drawAvatars();
+    drawPair();
+    applyTheme(sim.pal.slice(0, sim.L));
+    syncUi();
+    kick();
+  }
+  // 换来源（此刻的海 / 今日一张 / 我的海 / 编号）时清掉"改过"标记
+  function load(next, origin) {
+    Object.assign(S, { angle: null, amp: null, bands: null, dots: null, silSeed: 0, hue: 0, invert: false, terrace: 1 }, next);
+    S.origin = origin || null;
+    S.edited = false;
+    editTime = 0;
+    rebuild(450);
+  }
+  const touched = () => { if (S.origin) S.edited = true; };
+
+  function drawAvatars() {
+    const src = $('view'), sw = src.width, sh = src.height, s = Math.min(sw, sh), sx = (sw - s) / 2, sy = (sh - s) / 2;
+    for (const id of ['avC', 'avR', 'avS']) {
+      const cv = $(id), ctx = cv.getContext('2d');
+      ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = 'high';
+      ctx.clearRect(0, 0, cv.width, cv.height);
+      ctx.drawImage(src, sx, sy, s, s, 0, 0, cv.width, cv.height);
+    }
+  }
+  function pairSim() { return P.create(S.scene, simOpts({ ratio: [2, 1] })); }
+  function drawPair() {
+    const [a, b] = P.pairCanvases(pairSim(), 216, 'square');
+    for (const [id, c] of [['pairA', a], ['pairB', b]]) { const ctx = $(id).getContext('2d'); ctx.clearRect(0, 0, 216, 216); ctx.drawImage(c, 0, 0); }
+  }
+
+  function buildChips() {
+    $('gridChips').innerHTML = GRIDS.map((g) => `<button class="chip" type="button" data-v="${g}">${g}</button>`).join('');
+    $('ratioChips').innerHTML = RATIOS.map((r) => {
+      const k = 20 / Math.max(r.r[0], r.r[1]);
+      return `<button class="chip ratio" type="button" data-v="${r.id}" aria-label="${r.label}"><i style="width:${Math.round(r.r[0] * k + 4)}px;height:${Math.round(r.r[1] * k + 4)}px"></i><span>${r.label}</span></button>`;
+    }).join('');
+    $('tierChips').innerHTML = P.TIERS.map((x) => `<button class="chip" type="button" data-v="${x.id}">${x.id}</button>`).join('');
+    const sc = $('scenes');
+    SEA.forEach((s) => {
+      const b = document.createElement('button');
+      b.type = 'button'; b.className = 'scene'; b.dataset.v = s.id;
+      const cv = document.createElement('canvas');
+      cv.width = cv.height = 144;
+      b.append(cv, document.createElement('span'));
+      sc.append(b);
+      P.paint(cv.getContext('2d'), P.create(s, { grid: 16, seed: P.hashStr(s.id), rare: false }), 144, 144);
+    });
+  }
+  const press = (el, val) => el.querySelectorAll('[data-v]').forEach((b) => b.setAttribute('aria-pressed', b.dataset.v === String(val)));
+  function originText() {
+    const o = S.origin;
+    if (!o) return '';
+    if (o.kind === 'hero') return t('fromHero');
+    if (o.kind === 'today') return t('fromToday') + ' ' + o.code;
+    if (o.kind === 'name') return t('fromName', { t: o.text }) + ' ' + o.code;
+    if (o.kind === 'birthday') return t('fromBirthday', { d: o.text }) + ' ' + o.code;
+    return o.code;
+  }
+  function syncUi() {
+    const sc = S.scene, idx = SEA.indexOf(sc);
+    $('name').textContent = sc.name[lang];
+    $('code').textContent = P.shortCode(sc, S.seed) + ' · ' + sim.W / 2 + '×' + sim.H / 2;
+    $('origin').hidden = !(S.origin && S.edited);
+    $('origin').textContent = t('originFrom') + originText();
+    $('rareTag').hidden = !sim.rare;
+    $('rareTag').textContent = t('rare');
+    $('sceneOut').textContent = idx + 1 + ' / ' + SEA.length;
+    press($('scenes'), sc.id);
+    document.querySelectorAll('#scenes .scene span').forEach((sp, i) => { sp.textContent = SEA[i].name[lang]; });
+    press($('gridChips'), S.grid); $('gridOut').textContent = S.grid + ' ' + t('cells');
+    press($('ratioChips'), S.ratio.id); $('ratioOut').textContent = S.ratio.label;
+    press($('variantChips'), S.variant);
+    $('hue').value = S.hue; $('hueOut').textContent = S.hue + '°';
+    const radial = sc.layout === 'radial', ang = S.angle != null ? S.angle : sc.angle;
+    $('angle').value = ang; $('angle').disabled = radial; $('angleOut').textContent = radial ? t('radial') : ang + '°';
+    const amp = S.amp != null ? S.amp : sc.amp; $('amp').value = amp; $('ampOut').textContent = (+amp).toFixed(1);
+    $('terrace').value = S.terrace; $('terraceOut').textContent = (+S.terrace).toFixed(1);
+    const bands = S.bands || sc.steps; $('bands').value = bands; $('bandsOut').textContent = bands;
+    const dots = S.dots != null ? S.dots : sc.dots; $('dots').value = dots; $('dotsOut').textContent = (+dots).toFixed(1);
+    $('dotMax').value = S.dotMax; $('dotMaxOut').textContent = (S.dotMax / 2).toFixed(1) + ' ' + t('cells');
+    $('pair').value = S.pair; $('pairOut').textContent = Math.round(S.pair * 100) + '%';
+    $('silRow').hidden = sc.silhouette !== 'moon';
+    $('sil').checked = S.silhouette; $('silNext').disabled = !S.silhouette;
+    $('invert').checked = S.invert;
+    $('motion').checked = S.motion; $('motion').disabled = reduce.matches;
+  }
+  function setScene(sc) {
+    S.scene = sc;
+    S.angle = S.amp = S.bands = S.dots = null; S.silSeed = 0;
+    touched();
+    rebuild(450);
+    $('scenes').querySelector(`[data-v="${sc.id}"]`)?.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+  }
+  const step = (d) => setScene(SEA[(SEA.indexOf(S.scene) + d + SEA.length) % SEA.length]);
+  $('scenes').addEventListener('click', (e) => { const b = e.target.closest('.scene'); if (b) setScene(P.byId[b.dataset.v]); });
+  $('prev').addEventListener('click', () => step(-1));
+  $('next').addEventListener('click', () => step(1));
+  $('dice').addEventListener('click', () => { S.seed = (Math.random() * 4294967296) >>> 0; S.silSeed = 0; S.origin = null; S.edited = false; rebuild(400); });
+  $('gridChips').addEventListener('click', (e) => { const b = e.target.closest('[data-v]'); if (b) { S.grid = +b.dataset.v; touched(); rebuild(); } });
+  $('ratioChips').addEventListener('click', (e) => { const b = e.target.closest('[data-v]'); if (b) { S.ratio = RATIOS.find((r) => r.id === b.dataset.v); touched(); rebuild(); } });
+  $('variantChips').addEventListener('click', (e) => { const b = e.target.closest('[data-v]'); if (b) { S.variant = b.dataset.v; touched(); rebuild(350); } });
+  const sliders = { hue: (v) => (S.hue = +v), angle: (v) => (S.angle = +v), amp: (v) => (S.amp = +v), terrace: (v) => (S.terrace = +v),
+    bands: (v) => (S.bands = +v), dots: (v) => (S.dots = +v), dotMax: (v) => (S.dotMax = +v), pair: (v) => (S.pair = +v) };
+  let pending = 0;
+  Object.keys(sliders).forEach((id) => $(id).addEventListener('input', (e) => {
+    sliders[id](e.target.value); touched();
+    if (!pending) pending = requestAnimationFrame(() => { pending = 0; rebuild(); });
+  }));
+  $('sil').addEventListener('change', (e) => { S.silhouette = e.target.checked; touched(); rebuild(); });
+  $('silNext').addEventListener('click', () => { S.silSeed++; touched(); rebuild(300); });
+  $('invert').addEventListener('change', (e) => { S.invert = e.target.checked; touched(); rebuild(400); });
+  $('motion').addEventListener('change', (e) => { S.motion = e.target.checked; kick(); });
+  $('findRare').addEventListener('click', () => {
+    const s = P.findRare(S.scene, (Math.random() * 4294967296) >>> 0);
+    if (s == null) { toast(t('rareNone')); return; }
+    S.seed = s; S.origin = null; S.edited = false; rebuild(400);
+    toast(t('rareFound') + P.shortCode(S.scene, s));
+  });
+
+  (function swipe() {
+    const el = $('wrap');
+    let x0 = 0, y0 = 0, id = null;
+    el.addEventListener('pointerdown', (e) => { id = e.pointerId; x0 = e.clientX; y0 = e.clientY; });
+    el.addEventListener('pointerup', (e) => {
+      if (e.pointerId !== id) return;
+      id = null;
+      const dx = e.clientX - x0, dy = e.clientY - y0;
+      if (Math.abs(dx) > 48 && Math.abs(dx) > Math.abs(dy) * 1.5) { step(dx < 0 ? 1 : -1); $('swipeHint').hidden = true; }
+    });
+    el.addEventListener('pointercancel', () => { id = null; });
+  })();
+
+  // 第一屏 → 编辑区：把"此刻的海"带下来
+  function editHero() {
+    load({ scene: SEA[0], seed: heroSea.seed, variant: heroTime, ratio: S.ratio }, { kind: 'hero' });
+  }
+  $('editThis').addEventListener('click', (e) => {
+    e.preventDefault();
+    if (S.origin?.kind !== 'hero' || S.seed !== heroSea.seed) editHero();
+    $('edit').scrollIntoView({ behavior: reduce.matches ? 'auto' : 'smooth' });
+  });
+  $('randomOne').addEventListener('click', () => {
+    load({ scene: SEA[Math.floor(Math.random() * SEA.length)], seed: (Math.random() * 4294967296) >>> 0 }, null);
+    $('edit').scrollIntoView({ behavior: reduce.matches ? 'auto' : 'smooth' });
+  });
+  function openInEditor(next, origin) {
+    load(next, origin);
+    $('edit').scrollIntoView({ behavior: reduce.matches ? 'auto' : 'smooth' });
+  }
+
+  // ================= 导出 =================
+  const PNG_TIERS = ['1080p', '2K', '4K'], MAX_AREA = 4096 * 4096;
+  const exportDims = () => P.exportSize(S.tier, S.ratio.r);
+  const pngAllowed = (tier) => { const [w, h] = P.exportSize(tier, S.ratio.r); return PNG_TIERS.includes(tier) && w * h <= MAX_AREA; };
+  function syncExport() {
+    press($('tierChips'), S.tier);
+    $('tierChips').querySelectorAll('[data-v]').forEach((b) => {
+      const ok = S.fmt === 'svg' || pngAllowed(b.dataset.v);
+      b.disabled = !ok;
+      b.innerHTML = b.dataset.v + (ok ? '' : '<span class="note">V0</span>');
+    });
+    press($('shapeChips'), S.shape); press($('fmtChips'), S.fmt);
+    $('safe').checked = S.safe;
+    const [w, h] = exportDims();
+    $('exSize').textContent = w + ' × ' + h;
+    $('fmtHint').textContent = S.fmt === 'png' ? t('pngHint') : t('svgHint');
+    const cell = Math.min(w / sim.W, h / sim.H);
+    $('cellHint').hidden = !(S.fmt === 'png' && cell < 6);
+    $('cellHint').textContent = t('cellHint', { n: cell.toFixed(1) });
+    const box = $('exPreviewBox'), pv = $('exPreview');
+    const k = 164 / Math.max(w, h), pw = Math.round(w * k * 2), ph = Math.round(h * k * 2);
+    const c = P.toCanvas(P.create(S.scene, simOpts()), pw, ph, S.shape);
+    pv.width = pw; pv.height = ph; pv.style.width = pw / 2 + 'px'; pv.style.height = ph / 2 + 'px';
+    pv.getContext('2d').drawImage(c, 0, 0);
+    box.querySelector('.safe-ring')?.remove();
+    if (S.safe) {
+      const ring = document.createElement('div'), d = (Math.min(pw, ph) / 2) * 0.8;
+      ring.className = 'safe-ring';
+      Object.assign(ring.style, { width: d + 'px', height: d + 'px', left: `calc(50% - ${d / 2}px)`, top: `calc(50% - ${d / 2}px)` });
+      box.append(ring);
+    }
+  }
+  $('openExport').addEventListener('click', () => { if (S.fmt === 'png' && !pngAllowed(S.tier)) S.tier = '4K'; $('sheet').hidden = false; syncExport(); $('closeExport').focus(); });
+  const closeExport = () => { $('sheet').hidden = true; $('openExport').focus(); };
+  $('closeExport').addEventListener('click', closeExport);
+  $('sheet').addEventListener('click', (e) => { if (e.target === $('sheet')) closeExport(); });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !$('sheet').hidden) closeExport(); });
+  $('tierChips').addEventListener('click', (e) => { const b = e.target.closest('[data-v]'); if (b && !b.disabled) { S.tier = b.dataset.v; syncExport(); } });
+  $('fmtChips').addEventListener('click', (e) => { const b = e.target.closest('[data-v]'); if (!b) return; S.fmt = b.dataset.v; if (S.fmt === 'png' && !pngAllowed(S.tier)) S.tier = '4K'; syncExport(); });
+  $('shapeChips').addEventListener('click', (e) => {
+    const b = e.target.closest('[data-v]');
+    if (!b) return;
+    S.shape = b.dataset.v;
+    if (S.shape === 'circle' && S.ratio.r[0] !== S.ratio.r[1]) { S.ratio = RATIOS[0]; touched(); rebuild(); toast(t('toCircle')); }
+    syncExport();
+  });
+  $('safe').addEventListener('change', (e) => { S.safe = e.target.checked; syncExport(); });
+
+  // 保存：claude.ai 里走 downloads 能力；普通浏览器用 a[download]；都不行就弹出图片让用户长按保存
+  let downloadsP = null;
+  const getDownloads = () => (downloadsP ||= window.claude && window.claude.use ? window.claude.use('downloads').catch(() => null) : Promise.resolve(undefined));
+  async function offer(filename, blob) {
+    const dl = await getDownloads();
+    if (dl) {
+      try { await dl.save({ filename, data: blob }); toast(t('saved') + filename); return true; }
+      catch (e) {
+        if (e && e.code === 'declined') { toast(t('declined')); return false; }
+        if (e && e.code === 'rate_limited') { toast(t('busy')); return false; }
+      }
+    }
+    const url = URL.createObjectURL(blob);
+    if (dl === undefined && window.top === window.self) {
+      const a = document.createElement('a');
+      a.href = url; a.download = filename; document.body.append(a); a.click(); a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 4000);
+      toast(t('saved') + filename);
+      return true;
+    }
+    $('resultImg').src = url; $('result').hidden = false;
+    return false;
+  }
+  $('resultClose').addEventListener('click', () => { $('result').hidden = true; });
+  const canvasBlob = (cv) => new Promise((res) => cv.toBlob(res, 'image/png'));
+  $('doExport').addEventListener('click', async () => {
+    const [w, h] = exportDims(), m = P.create(S.scene, simOpts());
+    const base = `pixtides-${P.shortCode(S.scene, S.seed)}-${w}x${h}${S.shape === 'square' ? '' : '-' + S.shape}`;
+    if (S.fmt === 'svg') { offer(base + '.svg', new Blob([P.toSVG(m, w, h, S.shape)], { type: 'image/svg+xml' })); return; }
+    toast(t('making'));
+    await new Promise((r) => setTimeout(r, 30));
+    try { const b = await canvasBlob(P.toCanvas(m, w, h, S.shape)); if (!b) { toast(t('failed')); return; } offer(base + '.png', b); }
+    catch (err) { toast(t('failed')); }
+  });
+  $('pairExport').addEventListener('click', async () => {
+    const [a, b] = P.pairCanvases(pairSim(), 2048, 'circle'), code = P.shortCode(S.scene, S.seed);
+    if (await offer(`pixtides-${code}-pair-A.png`, await canvasBlob(a))) await offer(`pixtides-${code}-pair-B.png`, await canvasBlob(b));
+  });
+
+  // ================= 今日一张 + 收集日历 =================
+  const todayView = new P.View($('todayCv'));
+  const todayKey = P.localDateKey(new Date());
+  let shownDay = todayKey, calMonth = todayKey.slice(0, 7);
+  const days = new Set(store.get('pt-days', []));
+  days.add(todayKey);
+  store.set('pt-days', [...days]);
+  function showDay(key) {
+    shownDay = key;
+    const d = P.dayPick(key, SEA);
+    const s = P.create(d.scene, { grid: 24, ratio: [4, 5], seed: d.seed });
+    const w = Math.round(($('todayCv').clientWidth || 360) * dpr());
+    todayView.attach(s, w, Math.round((w * 5) / 4));
+    todayView.render();
+    $('todayDate').textContent = key;
+    $('todayName').textContent = d.scene.name[lang] + (s.rare ? ' · ' + t('rare') : '');
+    $('todayCode').textContent = t('no', { n: d.no }) + ' · ' + P.shortCode(d.scene, d.seed);
+    $('todaySw').textContent = '';
+    s.pal.slice(0, s.L).forEach((h) => { const i = document.createElement('i'); i.style.background = h; $('todaySw').append(i); });
+    drawCal();
+  }
+  function drawCal() {
+    const [y, m] = calMonth.split('-').map(Number);
+    const first = new Date(y, m - 1, 1), daysIn = new Date(y, m, 0).getDate(), lead = (first.getDay() + 6) % 7;
+    const g = $('calGrid');
+    g.textContent = '';
+    T[lang].wd.forEach((w) => { const s = document.createElement('span'); s.className = 'wd'; s.textContent = w; g.append(s); });
+    for (let i = 0; i < lead; i++) g.append(document.createElement('span'));
+    for (let d = 1; d <= daysIn; d++) {
+      const key = `${y}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+      const b = document.createElement('button');
+      b.type = 'button'; b.className = 'day'; b.textContent = d;
+      b.setAttribute('aria-pressed', key === shownDay);
+      if (key > todayKey) { b.classList.add('future'); b.disabled = true; }
+      if (key === todayKey) b.classList.add('today');
+      if (days.has(key)) {
+        b.classList.add('got');
+        const cv = document.createElement('canvas'), pk = P.dayPick(key, SEA);
+        cv.width = cv.height = 48;
+        P.paint(cv.getContext('2d'), P.create(pk.scene, { grid: 8, seed: pk.seed }), 48, 48);
+        b.append(cv);
+      }
+      b.addEventListener('click', () => showDay(key));
+      g.append(b);
+    }
+    $('calMonth').textContent = calMonth;
+    $('calCount').textContent = t('collected', { n: days.size });
+  }
+  const shiftMonth = (k) => { const [y, m] = calMonth.split('-').map(Number), d = new Date(y, m - 1 + k, 1); calMonth = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`; drawCal(); };
+  $('calPrev').addEventListener('click', () => shiftMonth(-1));
+  $('calNext').addEventListener('click', () => shiftMonth(1));
+  $('todayOpen').addEventListener('click', () => {
+    const d = P.dayPick(shownDay, SEA);
+    openInEditor({ scene: d.scene, seed: d.seed, ratio: RATIOS[7] }, { kind: 'today', code: P.shortCode(d.scene, d.seed) });
+  });
+
+  // ================= 我的海：名字 / 生日 → 种子 =================
+  const mineView = new P.View($('mineCv'));
+  let mineMode = 'name', mineResult = null;
+  function makeMine() {
+    if (mineMode === 'name') {
+      const r = P.namePick($('mineText').value || $('mineText').placeholder, SEA);
+      mineResult = { scene: r.scene, seed: r.seed, kind: 'name', text: r.text };
+      $('mineName').textContent = t('mineName', { t: r.text });
+      $('mineExplain').textContent = t('mineNameExplain');
+    } else {
+      const key = P.normalizeDate($('mineDate').value) || '2000-01-01', d = P.dayPick(key, SEA);
+      mineResult = { scene: d.scene, seed: d.seed, kind: 'birthday', text: key };
+      $('mineName').textContent = t('mineDay', { d: key });
+      $('mineExplain').textContent = t('mineDayExplain', { d: key, n: d.no });
+    }
+    const s = P.create(mineResult.scene, { grid: 24, seed: mineResult.seed });
+    const w = Math.round(($('mineCv').clientWidth || 360) * dpr());
+    mineView.attach(s, w, w);
+    mineView.render();
+    $('mineCode').textContent = mineResult.scene.name[lang] + ' · ' + P.shortCode(mineResult.scene, mineResult.seed) + (s.rare ? ' · ' + t('rare') : '');
+  }
+  $('mineTabs').addEventListener('click', (e) => {
+    const b = e.target.closest('[data-v]');
+    if (!b) return;
+    mineMode = b.dataset.v;
+    press($('mineTabs'), mineMode);
+    $('nameRow').hidden = mineMode !== 'name';
+    $('dateRow').hidden = mineMode !== 'birthday';
+    makeMine();
+  });
+  $('mineForm').addEventListener('submit', (e) => { e.preventDefault(); makeMine(); });
+  $('mineOpen').addEventListener('click', () => {
+    if (!mineResult) return;
+    openInEditor({ scene: mineResult.scene, seed: mineResult.seed, ratio: RATIOS[0] },
+      { kind: mineResult.kind, text: mineResult.text, code: P.shortCode(mineResult.scene, mineResult.seed) });
+  });
+
+  // ================= 分类入口 =================
+  const cards = [];
+  function buildCats() {
+    const grid = $('catGrid');
+    grid.textContent = ''; cards.length = 0;
+    for (const c of P.CATEGORIES) {
+      const live = c.id === 'sea';
+      const el = document.createElement('button');
+      el.type = 'button'; el.className = 'cat';
+      const cv = document.createElement('canvas');
+      cv.setAttribute('aria-hidden', 'true');
+      const meta = document.createElement('div');
+      meta.className = 'meta';
+      const b = document.createElement('b'); b.textContent = c.name[lang];
+      const sm = document.createElement(live ? 'small' : 'span');
+      sm.className = live ? '' : 'soon'; sm.textContent = live ? String(c.count) : t('soon');
+      meta.append(b, sm); el.append(cv, meta); grid.append(el);
+      if (live) el.addEventListener('click', () => openInEditor({ scene: P.byId[c.cover], seed: (Math.random() * 4294967296) >>> 0 }, null));
+      const card = { el, cv, sim: P.create(c.cover, { grid: 16, seed: P.hashStr(c.id), rare: false }), view: new P.View(cv), playing: false, t: 0 };
+      const on = () => { if (!reduce.matches) { card.playing = true; kick(); } }, off = () => { card.playing = false; };
+      el.addEventListener('pointerenter', on); el.addEventListener('pointerdown', on);
+      el.addEventListener('pointerleave', off); el.addEventListener('pointercancel', off);
+      el.addEventListener('pointerup', (e) => { if (e.pointerType !== 'mouse') off(); });
+      el.addEventListener('focus', on); el.addEventListener('blur', off);
+      cards.push(card);
+    }
+    sizeCards();
+  }
+  function sizeCards() { cards.forEach((c) => { const w = Math.round(c.cv.clientWidth * dpr()) || 320; c.view.attach(c.sim, w, w); c.view.render(); }); }
+
+  let toastTimer = 0;
+  function toast(msg) {
+    const el = $('toast');
+    el.textContent = msg; el.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => el.classList.remove('show'), 2400);
+  }
+
+  // ================= 统一动画循环（10 fps；溶解时逐帧） =================
   const FPS = 10;
   let raf = 0, last = 0, acc = 0;
   function frame(now) {
@@ -248,139 +1013,70 @@ footer .brand{font-family:var(--f-pixel);font-size:16px;color:var(--fg)}
     if (document.hidden) return;
     const dt = Math.min(0.25, (now - (last || now)) / 1000);
     last = now;
-    let dirty = view.busy;
-    if (!reduce.matches) {
-      acc += dt;
-      if (acc >= 1 / FPS) { acc %= 1 / FPS; sim.step(1 / FPS); dirty = true; }
+    const moving = !reduce.matches;
+    acc += dt;
+    const tick = acc >= 1 / FPS;
+    if (tick) acc %= 1 / FPS;
+    if (heroVisible) {
+      if (moving && tick) heroSim.setTime(P.globalSea().t);
+      if ((moving && tick) || heroView.busy) heroView.render();
     }
-    if (dirty) view.render();
-    if (!reduce.matches || view.busy) raf = requestAnimationFrame(frame);
+    if (editVisible) {
+      const anim = moving && S.motion;
+      if (anim && tick) { editTime += 1 / FPS; sim.setTime(editTime); }
+      if ((anim && tick) || view.busy) { view.render(); drawAvatars(); }
+    }
+    if (tick) cards.forEach((c) => { if (c.playing) { c.t += 1 / FPS; c.sim.setTime(c.t); c.view.render(); } });
+    const busy = heroView.busy || view.busy || cards.some((c) => c.playing) || (moving && (heroVisible || (editVisible && S.motion)));
+    if (busy) raf = requestAnimationFrame(frame);
   }
   function kick() { if (!raf && !document.hidden) { last = 0; raf = requestAnimationFrame(frame); } }
   document.addEventListener('visibilitychange', kick);
-  reduce.addEventListener?.('change', kick);
+  reduce.addEventListener?.('change', () => { syncUi(); kick(); });
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach((e) => { if (e.target === hero) heroVisible = e.isIntersecting; else editVisible = e.isIntersecting; });
+    kick();
+  });
+  io.observe(hero); io.observe($('edit'));
+
+  // ================= 语言 =================
+  function applyLang() {
+    document.documentElement.lang = lang === 'zh' ? 'zh-CN' : 'en';
+    document.querySelectorAll('[data-i]').forEach((el) => { el.textContent = t(el.dataset.i); });
+    $('lang').textContent = t('lang');
+    $('lang').setAttribute('aria-label', lang === 'zh' ? 'Switch to English' : '切换到中文');
+    $('prev').setAttribute('aria-label', t('prev')); $('next').setAttribute('aria-label', t('next'));
+    syncThemeChip(); updateTimeLabel(); updateSyncPlate();
+    buildCats();
+    if (sim) syncUi();
+    showDay(shownDay);
+    makeMine();
+    if (!$('sheet').hidden) syncExport();
+  }
+  $('lang').addEventListener('click', () => { lang = lang === 'zh' ? 'en' : 'zh'; store.set('pt-lang', lang); applyLang(); });
 
   let rt = 0, lastSize = '';
   window.addEventListener('resize', () => {
     clearTimeout(rt);
     rt = setTimeout(() => {
       const size = hero.clientWidth + 'x' + hero.clientHeight;
-      if (size !== lastSize) { lastSize = size; build(); }
+      if (size !== lastSize) { lastSize = size; buildHero(); }
+      rebuild(); sizeCards();
     }, 180);
   });
 
-  // ---------- 分类入口 ----------
-  const cards = [];
-  function buildCats() {
-    const grid = $('catGrid');
-    grid.textContent = '';
-    cards.length = 0;
-    for (const c of P.CATEGORIES) {
-      const live = c.id === 'sea';
-      const el = document.createElement(live ? 'a' : 'div');
-      el.className = 'cat';
-      if (live) el.href = 'editor.html#' + c.cover;
-      el.tabIndex = 0;
-      const cv = document.createElement('canvas');
-      cv.setAttribute('aria-hidden', 'true');
-      const meta = document.createElement('div');
-      meta.className = 'meta';
-      const b = document.createElement('b');
-      b.textContent = c.name[lang];
-      const sm = document.createElement('small');
-      sm.textContent = String(c.count);
-      meta.append(b, sm);
-      if (!live) { const s = document.createElement('span'); s.className = 'soon'; s.textContent = T[lang].soon; meta.append(s); sm.remove(); }
-      el.append(cv, meta);
-      grid.append(el);
-      const s = P.create(c.cover, { grid: 16, seed: P.hashStr(c.id) });
-      const v = new P.View(cv);
-      cards.push({ el, cv, sim: s, view: v, playing: false });
-    }
-    sizeCards();
-    // 卡片静止；悬停或按住时才动
-    cards.forEach((card) => {
-      const on = () => { if (!reduce.matches) { card.playing = true; tickCards(); } };
-      const off = () => { card.playing = false; };
-      card.el.addEventListener('pointerenter', on);
-      card.el.addEventListener('pointerdown', on);
-      card.el.addEventListener('pointerleave', off);
-      card.el.addEventListener('pointerup', (e) => { if (e.pointerType !== 'mouse') off(); });
-      card.el.addEventListener('pointercancel', off);
-      card.el.addEventListener('focus', on);
-      card.el.addEventListener('blur', off);
-    });
-  }
-  function sizeCards() {
-    const dpr = Math.min(3, window.devicePixelRatio || 1);
-    cards.forEach((c) => { const w = Math.round(c.cv.clientWidth * dpr) || 320; c.view.attach(c.sim, w, w); c.view.render(); });
-  }
-  let cardTimer = 0;
-  function tickCards() {
-    if (cardTimer) return;
-    cardTimer = setInterval(() => {
-      const any = cards.filter((c) => c.playing);
-      if (!any.length || document.hidden) { clearInterval(cardTimer); cardTimer = 0; return; }
-      any.forEach((c) => { c.sim.step(1 / FPS); c.view.render(); });
-    }, 1000 / FPS);
-  }
-  window.addEventListener('resize', () => { clearTimeout(sizeCards.t); sizeCards.t = setTimeout(sizeCards, 200); });
-
-  // ---------- 今日一张 ----------
-  const SEA = P.SCENES.filter((s) => s.cat === 'sea');
-  let todayScene, todaySeed;
-  function buildToday() {
-    const d = new Date(), ds = P.dateSeed(d);
-    todayScene = SEA[ds.seed % SEA.length];
-    todaySeed = Math.floor(ds.seed / SEA.length) % 1e9;
-    const s = P.create(todayScene, { grid: 24, ratio: [4, 5], seed: todaySeed });
-    const cv = $('todayCv'), dpr = Math.min(3, window.devicePixelRatio || 1);
-    const w = Math.round(cv.clientWidth * dpr) || 400;
-    const v = new P.View(cv);
-    v.attach(s, w, Math.round((w * 5) / 4));
-    v.render();
-    $('todayDate').textContent = ds.key;
-    $('todayName').textContent = todayScene.name[lang];
-    $('todayCode').textContent = 'No. ' + P.shortCode(todayScene, todaySeed);
-    $('todayOpen').href = 'editor.html#' + todayScene.id + '.' + todaySeed + '.4x5';
-    const sw = $('todaySw');
-    sw.textContent = '';
-    s.pal.slice(0, s.L).forEach((h) => { const i = document.createElement('i'); i.style.background = h; sw.append(i); });
-  }
-
-  // ---------- 语言 ----------
-  function applyLang() {
-    const t = T[lang];
-    document.documentElement.lang = lang === 'zh' ? 'zh-CN' : 'en';
-    document.querySelectorAll('[data-i]').forEach((el) => { el.textContent = t[el.dataset.i]; });
-    $('lang').textContent = t.lang;
-    $('lang').setAttribute('aria-label', lang === 'zh' ? 'Switch to English' : '切换到中文');
-    updateTimeLabel();
-    buildCats();
-    if (todayScene) { $('todayName').textContent = todayScene.name[lang]; }
-  }
-  $('lang').addEventListener('click', () => {
-    lang = lang === 'zh' ? 'en' : 'zh';
-    try { localStorage.setItem('pt-lang', lang); } catch (e) {}
-    applyLang();
-  });
-
-  $('randomOne').addEventListener('click', (e) => {
-    const s = SEA[Math.floor(Math.random() * SEA.length)];
-    e.currentTarget.href = 'editor.html#' + s.id + '.' + ((Math.random() * 1e9) >>> 0);
-  });
-
-  // ---------- 启动 ----------
-  const meta = document.createElement('meta');
-  meta.name = 'theme-color';
-  document.head.append(meta);
-  applyUi(P.SHOAL_TIMES[current]);
-  build();
+  // ================= 启动 =================
+  // 地址里的 #编号 直接打开那张图，例如 #SH-7KQ-9ZT0
+  const fromHash = P.parseCode(location.hash.replace('#', ''));
+  buildHero();
   lastSize = hero.clientWidth + 'x' + hero.clientHeight;
+  buildChips();
+  if (fromHash && fromHash.scene.cat === 'sea') { S.scene = fromHash.scene; S.seed = fromHash.seed; S.origin = { kind: 'code', code: P.shortCode(fromHash.scene, fromHash.seed) }; }
+  rebuild();
   applyLang();
-  buildToday();
+  if (fromHash) $('edit').scrollIntoView();
   kick();
-  if (document.fonts) document.fonts.ready.then(() => { sizeCards(); });
+  if (document.fonts) document.fonts.ready.then(sizeCards);
 })();
 </script>
 </body>
