@@ -1,0 +1,10 @@
+{
+  // 像素潮 / PixTides：静态站点跑在 Cloudflare Workers 上（只有静态资源，没有 Worker 代码）
+  // 部署前先运行 node design/tools/build-site.mjs 生成 site/
+  "name": "pixtides",
+  "compatibility_date": "2026-10-07",
+  "assets": {
+    "directory": "./site",
+    "not_found_handling": "404-page"
+  }
+}

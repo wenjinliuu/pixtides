@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>像素潮编辑器</title>
+<style>html,body{margin:0;background:#02081B;color:#ECF2FE;font:15px -apple-system,BlinkMacSystemFont,"PingFang SC",sans-serif}main{padding:48px 16px;max-width:36ch}a{color:#A9FBFD}</style>
+</head>
+<body>
+<!-- 编辑器已经并进首页（同一页的两种状态），这里只做跳转，保留旧链接 -->
+<main><p>编辑器已经并进首页，正在跳转……</p><p><a id="go" href="home.html#edit">没有跳转就点这里</a></p></main>
+<script>
+(function () {
+  var code = location.hash.replace('#', '');
+  var target = 'home.html' + (code ? '#' + code : '#edit');
+  document.getElementById('go').href = target;
+  location.replace(target);
+})();
+</script>
+</body>
+</html>
