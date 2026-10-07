@@ -98,10 +98,6 @@ html[lang=en] .tag{font-family:var(--f-pixel);font-size:16px;line-height:1.8}
 .plate{font-family:var(--f-zh);font-size:12px;background:var(--h-bg);padding:3px 8px}
 html[lang=en] .plate{font-family:var(--f-pixel)}
 .plate b{font-family:var(--f-pixel);font-weight:400;font-variant-numeric:tabular-nums}
-.seg{display:flex;background:var(--h-bg);border:2px solid var(--h-bg)}
-.seg button{appearance:none;border:0;border-radius:0;min-width:40px;min-height:36px;padding:0 8px;cursor:pointer;background:none;color:var(--h-fg);opacity:.7;font-family:var(--f-zh);font-size:12px}
-html[lang=en] .seg button{font-family:var(--f-pixel);font-size:12px}
-.seg button[aria-pressed=true]{background:var(--h-accent);color:var(--h-on);opacity:1}
 .hero-actions{display:flex;gap:8px;align-items:flex-end}
 .mine-scenes{grid-auto-columns:56px}
 .mine-scenes .scene canvas{width:56px;height:56px}
@@ -231,3 +227,9 @@ html[lang=en] .sheet-head h2{font-family:var(--f-pixel)}
 html[lang=en] #toast{font-family:var(--f-body);font-size:13px}
 #toast.show{opacity:1}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
+
+/* 编辑区画面分类：一行可横向滚动的小标签 */
+.cat-tabs{display:flex;gap:6px;overflow-x:auto;padding-bottom:2px;scrollbar-width:none}
+.cat-tabs::-webkit-scrollbar{display:none}
+.cat-tabs .chip{flex:none;padding:0 10px;font-family:var(--f-zh);font-size:12px}
+html[lang=en] .cat-tabs .chip{font-family:var(--f-pixel)}

@@ -171,7 +171,7 @@ function trees(ctx: SilCtx, r: Rng, scene: Scene, col: number): SilLayer {
 function boat(ctx: SilCtx, r: Rng, scene: Scene, fixed: number): SilLayer {
   const { W, H, S, L, lum, layer } = ctx;
   const u = detailUnit(S);
-  const len = even(S * (0.08 + r() * 0.05));
+  const len = even(Math.max(S * (0.08 + r() * 0.05), 12)); // 粗格子下至少 6 格长，否则认不出是船
   const hx = Math.round(r() * Math.max(1, W - len - 4)) + 2;
   const hy = Math.round(H * (scene.horizon ?? 0.62));
   const mast = even(len * (1 + r() * 0.3));
